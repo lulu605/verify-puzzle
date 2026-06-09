@@ -333,6 +333,24 @@ function uploadDialogueImg(idx) {
   document.getElementById('imgUploadModal').style.display = 'flex';
 }
 
+function uploadCoverMusic() {
+  uploadTarget = 'coverMusic';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('imgUploadModal').style.display = 'flex';
+}
+
+function playCoverMusic() {
+  const val = document.getElementById('editCoverMusic').value;
+  if (!val) return;
+  const audio = new Audio(val);
+  audio.play().catch(e => alert('播放失败: ' + e.message));
+}
+
+function clearCoverMusic() {
+  document.getElementById('editCoverMusic').value = '';
+  autoSaveGame();
+}
+
 function uploadCoverBg() {
   uploadTarget = 'cover';
   document.getElementById('fileInput').value = '';
@@ -379,6 +397,9 @@ async function handleUpload() {
       document.getElementById('editBgValue').value = 'url(' + data.url + ')';
       updateBgPreview();
       autoSave();
+    } else if (uploadTarget === 'coverMusic') {
+      document.getElementById('editCoverMusic').value = data.url;
+      autoSaveGame();
     } else if (uploadTarget === 'music' && uploadMusicChapter) {
       const input = document.querySelector(`.ch-music-input[data-chapter="${uploadMusicChapter}"]`);
       if (input) input.value = data.url;
@@ -520,6 +541,7 @@ async function loadGameConfig() {
     document.getElementById('editCoverBtnText').value = cfg.cover_button_text || '';
     document.getElementById('editCoverBg').value = cfg.cover_background || '';
     updateCoverBgPreview();
+    document.getElementById('editCoverMusic').value = cfg.cover_music || '';
     renderSubtitleEditor(cfg.chapter_subtitles || {});
     renderMusicEditor(cfg.chapter_music || {});
   } catch (e) { console.error('加载游戏配置失败', e); }
@@ -614,6 +636,7 @@ async function saveGameConfig() {
       cover_subtitle: document.getElementById('editCoverSubtitle').value,
       cover_button_text: document.getElementById('editCoverBtnText').value,
       cover_background: document.getElementById('editCoverBg').value,
+      cover_music: document.getElementById('editCoverMusic').value || null,
       chapter_subtitles: subtitles,
       chapter_music: music
     })

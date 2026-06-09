@@ -162,6 +162,16 @@
     <div style="margin-top:6px;font-size:12px;color:#4a5580">每章一行，格式：章节名称 = 副标题</div>
   </div>
   <div class="form-group">
+    <label>封面音乐</label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="editCoverMusic" class="input" placeholder="音乐URL或留空" readonly onclick="uploadCoverMusic()" style="flex:1">
+      <button class="btn btn-sm" onclick="uploadCoverMusic()" title="上传音乐">📁</button>
+      <button class="btn btn-sm btn-secondary" onclick="playCoverMusic()" title="试听">▶</button>
+      <button class="btn btn-sm btn-danger" onclick="clearCoverMusic()" title="清除">×</button>
+    </div>
+    <div style="margin-top:6px;font-size:12px;color:#4a5580">封面背景音乐（mp3），打开页面时自动播放</div>
+  </div>
+  <div class="form-group">
     <label>章节音乐</label>
     <div id="chapterMusicEditor"></div>
     <div style="margin-top:6px;font-size:12px;color:#4a5580">每个章节可设置一首背景音乐（mp3），进入章节时自动播放</div>

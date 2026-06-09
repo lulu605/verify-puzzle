@@ -70,7 +70,8 @@ const DEFAULT_GAME_CONFIG = {
   cover_button_text: '开始游戏',
   game_name: '验证谜题小程序',
   cover_background: 'linear-gradient(135deg,#0a0e27 0%,#1a1040 50%,#0a0e27 100%)',
-  chapter_music: {}
+  chapter_music: {},
+  cover_music: null
 };
 
 app.get('/api/game-config', (req, res) => {
