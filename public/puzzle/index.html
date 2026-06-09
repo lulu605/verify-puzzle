@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>验证谜题</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;width:100vw;height:100dvh;overflow:hidden;transition:background .8s;background:#0a0e27}
+.phone-frame{width:100%;height:100%;position:relative;overflow:hidden}
+.phone-notch,.phone-indicator{display:none}
+#app{position:relative;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden}
+@media(min-width:769px){
+  body{background:#1a1a2e;display:flex;align-items:center;justify-content:center}
+  .phone-frame{width:390px;height:844px;border-radius:40px;background:#000;padding:12px;box-shadow:0 0 0 1px rgba(255,255,255,0.1),0 20px 60px rgba(0,0,0,0.6);flex-shrink:0}
+  .phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:28px;background:#000;border-radius:0 0 16px 16px;z-index:50;display:flex;align-items:center;justify-content:center;gap:8px}
+  .phone-notch .camera{width:10px;height:10px;border-radius:50%;background:#1a1a3e;border:1px solid #2a2a4e}
+  .phone-notch .speaker{width:40px;height:4px;border-radius:2px;background:#1a1a3e}
+  .phone-indicator{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:120px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);z-index:50;display:block}
+  #app{padding:40px 16px 16px}
+  .success-overlay,.history-overlay{border-radius:30px}
+}
+#app::-webkit-scrollbar{width:3px}
+#app::-webkit-scrollbar-thumb{background:#64ffda;border-radius:2px}
+.character-area{width:100%;height:50%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;flex-shrink:0;overflow:hidden}
+.character-art{width:100%;height:100%;object-fit:cover;animation:fadeIn .5s, floatRabbit 2.5s ease-in-out infinite .5s}
+@keyframes floatRabbit{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.character-name-tag{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);color:#fff;font-size:15px;font-weight:bold;text-shadow:0 2px 10px rgba(0,0,0,0.8);letter-spacing:2px;background:rgba(0,0,0,0.4);padding:4px 16px;border-radius:4px}
+.dialogue-box{width:100%;height:auto;min-height:100px;max-height:45%;padding:14px 16px;border-radius:12px;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);position:relative;scroll-behavior:smooth;border:1px solid rgba(100,255,218,0.15);overflow-y:auto}
+.dialogue-box::-webkit-scrollbar{width:4px}
+.dialogue-box::-webkit-scrollbar-thumb{background:#64ffda;border-radius:2px}
+.dialogue-box::-webkit-scrollbar-track{background:transparent}
+.speaker-label{color:#64ffda;font-size:13px;font-weight:bold;margin-bottom:6px;letter-spacing:1px}
+.dialogue-entry{margin-bottom:12px;animation:fadeIn .4s}
+.dialogue-entry:last-child{margin-bottom:0}
+.dialogue-text{font-size:16px;line-height:1.7;color:#f0f0f0;white-space:pre-wrap}
+.cursor::after{content:'|';animation:blink .8s infinite;color:#64ffda}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.dialogue-image{margin-top:10px;border-radius:8px;max-width:100%;max-height:200px;display:block;animation:fadeIn .5s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-out{animation:fadeOut .5s forwards}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+.dialogue-progress{display:flex;gap:6px;justify-content:center;margin-bottom:20px}
+.d-progress-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.2);transition:.3s}
+.d-progress-dot.active{background:#64ffda;box-shadow:0 0 8px rgba(100,255,218,0.5)}
+.d-progress-dot.done{background:rgba(100,255,218,0.4)}
+.puzzle-area{width:100%;flex:1;display:none;animation:fadeIn .5s;justify-content:center;align-items:center;flex-direction:column}
+.puzzle-card{background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);border-radius:12px;padding:24px;margin-top:20px}
+.puzzle-image{max-width:100%;max-height:250px;border-radius:8px;margin-bottom:16px;display:block}
+.puzzle-question{font-size:18px;color:#f0f0f0;margin-bottom:20px;line-height:1.6}
+.puzzle-input{width:100%;padding:12px 16px;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:16px;outline:none;transition:.3s;font-family:inherit}
+.puzzle-input:focus{border-color:#64ffda}
+.puzzle-input.error{border-color:#ff4757;animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.puzzle-submit{width:100%;padding:12px;margin-top:12px;background:#64ffda;color:#0a0e27;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;transition:.3s;font-family:inherit}
+.puzzle-submit:hover{background:#45e0be}
+.puzzle-submit:disabled{opacity:0.5;cursor:not-allowed}
+.puzzle-error{color:#ff4757;font-size:14px;margin-top:10px;min-height:20px}
+.puzzle-attempts{color:#8892b0;font-size:13px;margin-top:8px}
+.click-hint{text-align:center;color:#64ffda;font-size:13px;margin-top:16px;animation:pulse 1.5s infinite;cursor:pointer;opacity:0.8}
+@keyframes pulse{0%,100%{opacity:0.6}50%{opacity:1}}
+.success-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:100;animation:fadeIn .3s}
+.success-content{text-align:center;color:#64ffda}
+.success-content h2{font-size:2em;margin-bottom:10px}
+.success-content p{color:#ccd6f6;font-size:18px}
+.success-content .node-options{margin-top:20px;display:flex;flex-direction:column;gap:8px}
+.node-opt-btn{display:block;width:100%;padding:12px 20px;background:rgba(100,255,218,0.1);border:1px solid #64ffda;border-radius:8px;color:#64ffda;font-size:15px;cursor:pointer;transition:.3s;font-family:inherit;text-align:left}
+.node-opt-btn:hover{background:rgba(100,255,218,0.2);transform:translateY(-1px)}
+.go-puzzle-btn{display:block;width:100%;max-width:300px;margin:10px auto 0;padding:14px;background:#64ffda;color:#0a0e27;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;transition:.3s;font-family:inherit}
+.go-puzzle-btn:hover{background:#45e0be;transform:translateY(-1px)}
+.history-btn{display:block;width:100%;max-width:300px;margin:10px auto 0;padding:12px;background:transparent;border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#ccd6f6;font-size:14px;cursor:pointer;transition:.3s;font-family:inherit}
+.history-btn:hover{border-color:#64ffda;color:#64ffda}
+.history-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(5,8,20,0.95);z-index:200;overflow-y:auto;display:none;animation:fadeIn .3s}
+.history-overlay .h-header{position:sticky;top:0;background:rgba(5,8,20,0.98);padding:16px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.1);z-index:1}
+.history-overlay .h-title{color:#64ffda;font-size:18px;font-weight:bold}
+.history-overlay .h-close{background:transparent;border:1px solid rgba(255,255,255,0.3);color:#ccd6f6;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit}
+.history-overlay .h-close:hover{border-color:#64ffda;color:#64ffda}
+.history-overlay .h-body{max-width:600px;margin:0 auto;padding:24px}
+.history-overlay .h-entry{margin-bottom:24px;animation:none}
+.history-overlay .h-entry .h-text{font-size:16px;line-height:1.8;color:#f0f0f0;white-space:pre-wrap}
+.history-overlay .h-entry .h-image{max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;display:block}
+.history-overlay .h-footer{text-align:center;padding:20px}
+.cover{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a0e27 0%,#1a1040 50%,#0a0e27 100%);z-index:10;animation:fadeIn .8s}
+.cover-stars{position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none}
+.cover-stars span{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 2s infinite alternate}
+@keyframes twinkle{0%{opacity:0.2}100%{opacity:1}}
+
+.cover-title{font-size:28px;font-weight:bold;color:#64ffda;letter-spacing:4px;text-align:center;margin-bottom:8px;z-index:1}
+.cover-subtitle{font-size:14px;color:#8892b0;letter-spacing:2px;margin-bottom:40px;z-index:1}
+.cover-btn{padding:14px 48px;background:transparent;border:2px solid #64ffda;border-radius:8px;color:#64ffda;font-size:18px;cursor:pointer;transition:.3s;font-family:inherit;letter-spacing:2px;z-index:1}
+.cover-btn:hover{background:#64ffda;color:#0a0e27;transform:translateY(-2px);box-shadow:0 4px 20px rgba(100,255,218,0.3)}
+.backpack-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(5,8,20,0.95);z-index:200;overflow-y:auto;display:none;animation:fadeIn .3s}
+.backpack-overlay .h-body{max-width:600px;margin:0 auto;padding:24px}
+.backpack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.backpack-item{background:#141834;border:1px solid #1a2040;border-radius:8px;padding:8px;text-align:center}
+.backpack-item img{width:100%;aspect-ratio:1;object-fit:contain;border-radius:4px;background:rgba(0,0,0,0.3)}
+.backpack-item .item-name{color:#8892b0;font-size:12px;margin-top:4px}
+.node-selector{position:absolute;top:8px;right:10px;z-index:50}
+.node-selector select{padding:6px 12px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#fff;font-size:13px;outline:none;cursor:pointer}
+.node-selector label{color:#8892b0;font-size:12px;margin-right:6px}
+
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="phone-notch">
+    <div class="speaker"></div>
+    <div class="camera"></div>
+  </div>
+  <div class="phone-indicator"></div>
+<div id="app">
+  <div id="chapterTitleOverlay" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:#0a0e27;z-index:20;align-items:center;justify-content:center;flex-direction:column;animation:fadeIn .5s">
+    <div style="font-size:36px;font-weight:bold;color:#64ffda;letter-spacing:8px" id="chapterTitleText"></div>
+    <div style="margin-top:12px;font-size:16px;color:#8892b0;letter-spacing:4px" id="chapterSubtitleText"></div>
+  </div>
+  <div class="cover" id="coverScreen">
+    <div class="cover-stars" id="coverStars"></div>
+    <div class="cover-title">✦ 谜 境 探 索 ✦</div>
+    <div class="cover-subtitle">— 验证谜题 —</div>
+    <button class="cover-btn" onclick="startGame()">开始游戏</button>
+  </div>
+  <div class="node-selector">
+    <label>跳转:</label>
+    <select id="nodeSelector" onchange="loadNode(this.value)"></select>
+  </div>
+  <div id="dialoguePhase" style="display:flex;flex-direction:column;height:100%">
+    <div class="dialogue-progress" id="progressDots"></div>
+    <div class="character-area">
+      <img class="character-art" id="charArt" style="display:none">
+      <div class="character-name-tag" id="charNameTag" style="display:none"></div>
+    </div>
+    <div class="dialogue-box" id="dialogueBox">
+      <div class="speaker-label" id="speakerLabel"></div>
+      <div id="dialogueContainer"></div>
+      <div class="click-hint" id="clickHint" style="display:none">点击继续 ▸</div>
+      <button class="go-puzzle-btn" id="goPuzzleBtn" style="display:none" onclick="showPuzzle()">前往验证 ➜</button>
+      <button class="history-btn" id="historyBtn" style="display:none" onclick="showHistory()">查看历史会话</button>
+    </div>
+  </div>
+  <div class="puzzle-area" id="puzzleArea">
+    <div class="puzzle-card">
+      <img id="puzzleImage" class="puzzle-image" style="display:none">
+      <div class="puzzle-question" id="puzzleQuestion"></div>
+      <input class="puzzle-input" id="puzzleInput" placeholder="请输入你的答案..." maxlength="50" onkeydown="if(event.key==='Enter')submitAnswer()">
+      <button class="puzzle-submit" id="submitBtn" onclick="submitAnswer()">提交答案</button>
+      <div class="puzzle-error" id="puzzleError"></div>
+      <div class="puzzle-attempts" id="puzzleAttempts"></div>
+      <div id="puzzleAnswerReveal" style="display:none;margin-top:12px">
+        <button class="puzzle-submit" id="revealBtn" onclick="revealAnswer()" style="background:transparent;border:1px solid #ffa502;color:#ffa502">👁 查看正确答案</button>
+        <div id="puzzleCorrectAnswer" style="display:none;margin-top:8px;padding:10px;background:rgba(255,165,2,0.1);border:1px solid #ffa502;border-radius:8px;color:#ffa502;font-size:15px;text-align:center"></div>
+        <button id="nextAfterFailBtn" style="display:none;width:100%;padding:12px;margin-top:12px;background:#64ffda;color:#0a0e27;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;font-family:inherit" onclick="proceedAfterFail()">下一步 ➜</button>
+      </div>
+    </div>
+  </div>
+  <div class="history-overlay" id="historyOverlay">
+    <div class="h-header">
+      <span class="h-title">📜 历史会话</span>
+      <button class="h-close" onclick="closeHistory()">关闭</button>
+    </div>
+    <div class="h-body" id="historyBody"></div>
+    <div class="h-footer">
+      <button class="go-puzzle-btn" onclick="closeHistory();showPuzzle()" style="display:inline-block;margin:0">前往验证 ➜</button>
+    </div>
+  </div>
+
+  <button id="backpackBtn" style="display:none;position:absolute;bottom:16px;right:16px;width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,0.7);border:1px solid rgba(100,255,218,0.3);color:#64ffda;font-size:22px;cursor:pointer;z-index:30;align-items:center;justify-content:center" onclick="toggleBackpack()">🎒</button>
+
+  <button id="restartBtn" style="display:none;position:absolute;top:60px;right:16px;padding:6px 12px;border-radius:6px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.15);color:#8892b0;font-size:12px;cursor:pointer;z-index:30;font-family:inherit" onclick="confirmRestart()">↺ 重新开始</button>
+
+  <div class="backpack-overlay" id="backpackOverlay">
+    <div class="h-header">
+      <span class="h-title">🎒 道具背包</span>
+      <button class="h-close" onclick="closeBackpack()" style="display:none">关闭</button>
+    </div>
+    <div class="h-body" id="backpackBody">
+      <div style="text-align:center;color:#4a5580;padding:40px 0">暂无道具</div>
+    </div>
+    <div class="h-footer" style="text-align:center;padding:16px">
+      <button onclick="closeBackpack()" style="padding:8px 40px;background:transparent;border:1px solid #2a3050;border-radius:8px;color:#8892b0;font-size:14px;cursor:pointer;font-family:inherit">返回</button>
+    </div>
+  </div>
+
+
+</div>
+</div>
+
+<script src="/js/puzzle.js"></script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+{
+  "nodes": [
+    {
+      "node_id": "e2c1ccbb",
+      "chapter": "第一章",
+      "node_name": "第一个问题",
+      "background": null,
+      "dialogues": [
+        {
+          "text": "欢迎大家参加外星人遇上黄果树的产品\n这是一个实景解谜游戏",
+          "insert_image": "/uploads/1780481236787-0a220380.png",
+          "typewriter_speed": 20,
+          "speaker": "小典",
+          "speaker_avatar": "/uploads/1780475066672-2a682994.png"
+        },
+        {
+          "text": "需要大家动动脑筋去解谜\n对了忘记自我介绍了",
+          "insert_image": null,
+          "typewriter_speed": 20,
+          "speaker": "小典",
+          "speaker_avatar": "/uploads/1780475074631-97af9db4.png"
+        },
+        {
+          "text": "我是来自陈典兔事侦探务所的小典\n这次我们需要调查失踪的蛋",
+          "insert_image": null,
+          "typewriter_speed": 20,
+          "speaker": "小典",
+          "speaker_avatar": "/uploads/1780475081299-b9c42885.png"
+        },
+        {
+          "text": "有一天我醒来就发现我的蛋不！见！了！\n我也不知道为什么它不见了\n你们一定要帮帮我...找回丢失的蛋....",
+          "insert_image": "/uploads/1780479440007-50b33c50.png",
+          "typewriter_speed": 20,
+          "speaker": "火苗龙",
+          "speaker_avatar": "/uploads/1780475086882-6f4b182d.png"
+        },
+        {
+          "text": "求你们帮我找回来！我……我什么都愿意做",
+          "insert_image": "/uploads/1780480494213-dcc8fa3b.png",
+          "typewriter_speed": 20,
+          "speaker": "火苗龙",
+          "speaker_avatar": null
+        },
+        {
+          "text": "十二颗蛋，偷蛋的人很懂行——专挑苗寨最不能忘的事下手...",
+          "insert_image": "/uploads/1780987745975-0f3e5ca7.png",
+          "typewriter_speed": 20,
+          "speaker": "小典",
+          "speaker_avatar": null
+        },
+        {
+          "text": "委托成立：【寻找十二蛋】\n委托人：火苗龙\n请前往地图上的第一个地点\n解开谜题 ，获得线索",
+          "insert_image": null,
+          "typewriter_speed": 20,
+          "speaker": "【系统提示】",
+          "speaker_avatar": null
+        }
+      ],
+      "puzzle": {
+        "question_text": "请输入第一个问题的答案？",
+        "question_image": null,
+        "correct_answer": "雄衣",
+        "answer_match_rule": "exact",
+        "max_attempts": 5,
+        "error_hint": "在看看线索卡，尝试用不同方向看看...",
+        "items": [
+          {
+            "name": "道具一",
+            "image": "/uploads/1780562966396-a5fb220d.jpg"
+          }
+        ]
+      },
+      "next_node_id": "b05e4e1c",
+      "char_bg": "/uploads/1780986495578-563522c6.jpg"
+    },
+    {
+      "node_id": "b05e4e1c",
+      "chapter": "第一章",
+      "node_name": "第二个问题",
+      "background": {
+        "type": "color",
+        "value": "#0a0e27"
+      },
+      "dialogues": [],
+      "puzzle": {
+        "question_text": "",
+        "question_image": null,
+        "correct_answer": "",
+        "answer_match_rule": "exact",
+        "max_attempts": 5,
+        "error_hint": "答案不对，再想想！",
+        "items": []
+      },
+      "next_node_id": "8969b430"
+    },
+    {
+      "node_id": "8969b430",
+      "chapter": "第一章",
+      "node_name": "第三个问题",
+      "background": {
+        "type": "color",
+        "value": "#0a0e27"
+      },
+      "dialogues": [],
+      "puzzle": {
+        "question_text": "",
+        "question_image": null,
+        "correct_answer": "",
+        "answer_match_rule": "exact",
+        "max_attempts": 5,
+        "error_hint": "答案不对，再想想！",
+        "items": []
+      },
+      "next_node_id": "fe92946f"
+    },
+    {
+      "node_id": "fe92946f",
+      "chapter": "第一章",
+      "node_name": "第四个问题",
+      "background": "url(/uploads/1780986788879-ce07bb15.jpg)",
+      "dialogues": [],
+      "puzzle": {
+        "question_text": "",
+        "question_image": null,
+        "correct_answer": "",
+        "answer_match_rule": "exact",
+        "max_attempts": 5,
+        "error_hint": "答案不对，再想想！",
+        "items": []
+      },
+      "next_node_id": null
+    },
+    {
+      "node_id": "e977386d",
+      "chapter": "第二章",
+      "node_name": "新节点",
+      "background": {
+        "type": "color",
+        "value": "#0a0e27"
+      },
+      "dialogues": [],
+      "puzzle": {
+        "question_text": "",
+        "question_image": null,
+        "correct_answer": "",
+        "answer_match_rule": "exact",
+        "max_attempts": 5,
+        "error_hint": "答案不对，再想想！",
+        "items": []
+      },
+      "next_node_id": null
+    },
+    {
+      "node_id": "11a6bf4b",
+      "chapter": "第二章",
+      "node_name": "新节点",
+      "background": {
+        "type": "color",
+        "value": "#0a0e27"
+      },
+      "dialogues": [],
+      "puzzle": {
+        "question_text": "",
+        "question_image": null,
+        "correct_answer": "",
+        "answer_match_rule": "exact",
+        "max_attempts": 3,
+        "error_hint": "答案不对，再想想！"
+      },
+      "next_node_id": null
+    },
+    {
+      "node_id": "6db16ca9",
+      "chapter": "第三章",
+      "node_name": "新节点",
+      "background": {
+        "type": "color",
+        "value": "#0a0e27"
+      },
+      "dialogues": [],
+      "puzzle": {
+        "question_text": "",
+        "question_image": null,
+        "correct_answer": "",
+        "answer_match_rule": "exact",
+        "max_attempts": 3,
+        "error_hint": "答案不对，再想想！"
+      },
+      "next_node_id": null
+    }
+  ],
+  "gameConfig": {
+    "cover_title": " 西江奇谭",
+    "cover_subtitle": "— 寻找火苗龙的十二个蛋的传说 —",
+    "cover_button_text": "开始游戏",
+    "game_name": "外星人遇上黄果树特别活动",
+    "cover_background": "url(/uploads/1780985314308-7854c236.jpg)",
+    "chapter_subtitles": {
+      "第一章": "楔子",
+      "第二章": "寻找十二个蛋",
+      "第三章": "真正的真相"
+    }
+  }
+}

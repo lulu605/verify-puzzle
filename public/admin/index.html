@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>管理后台 - 验证谜题</title>
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <h2>📖 章节管理</h2>
+    <div id="chapterList" class="chapter-list"></div>
+    <button class="btn btn-primary" onclick="addChapter()" style="width:100%;margin-top:8px">+ 新建章节</button>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-menu-item" onclick="showGameConfig()">⚙ 游戏设置</div>
+  </aside>
+  <main class="editor">
+    <div id="editorPlaceholder" class="placeholder">← 选择一个节点开始编辑</div>
+    <div id="editorContent" class="editor-content" style="display:none">
+      <div class="editor-tabs">
+        <button class="tab active" data-tab="basic">基本信息</button>
+        <button class="tab" data-tab="dialogues">对话编辑</button>
+        <button class="tab" data-tab="puzzle">验证设置</button>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn btn-primary" onclick="manualSave()">💾 保存</button>
+        <span id="saveStatus" style="font-size:13px;color:#8892b0;line-height:32px"></span>
+      </div>
+      <div id="tab-basic" class="tab-content active">
+        <div class="form-group">
+          <label>节点ID</label>
+          <input id="editNodeId" disabled class="input">
+        </div>
+        <div class="form-group">
+          <label>节点名称</label>
+          <input id="editNodeName" class="input" oninput="autoSave()">
+        </div>
+        <div class="form-group">
+          <label>所属章节</label>
+          <div style="display:flex;gap:8px">
+            <select id="editChapter" class="input" onchange="autoSave()" style="flex:1"></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>背景样式（同封面）</label>
+          <div class="bg-row">
+            <input id="editBgValue" class="input" placeholder="颜色值、CSS渐变或图片URL" oninput="updateBgPreview();autoSave()">
+            <button class="btn btn-sm" onclick="uploadBgImg()" title="上传图片">📁</button>
+            <button class="btn btn-sm" onclick="resetBg()" title="恢复默认颜色" style="background:transparent;border:1px solid #4a5580;color:#8892b0">↺</button>
+            <span id="bgPreview" class="bg-preview" style="background:#0a0e27"></span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>跳转节点（验证通过后）</label>
+          <select id="editNextNode" class="input" onchange="autoSave()">
+            <option value="">无 - 未设置</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <button class="btn btn-danger" onclick="deleteNode()">删除此节点</button>
+        </div>
+      </div>
+
+      <div id="tab-dialogues" class="tab-content">
+        <div class="dialogue-editor-layout">
+          <div class="dialogue-editor-left">
+            <div id="dialogueList" class="dialogue-list"></div>
+            <button class="btn btn-primary" onclick="addDialogue()">+ 添加对话</button>
+          </div>
+          <div class="dialogue-editor-right">
+            <div class="preview-header">📱 实时预览</div>
+            <div class="preview-phone" id="previewPhone">
+              <div class="preview-notch"></div>
+              <div class="preview-screen" id="previewScreen">
+                <div class="preview-char-area">
+                  <img class="preview-char-art" id="previewCharArt" style="display:none">
+                  <div class="preview-char-name" id="previewCharName" style="display:none"></div>
+                </div>
+                <div class="preview-dialogue-box">
+                  <div class="preview-speaker" id="previewSpeaker"></div>
+                  <div class="preview-text" id="previewText">选择一条对话预览</div>
+                  <div class="preview-click-hint">▸</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-puzzle" class="tab-content">
+        <div class="form-group">
+          <label>问题文本</label>
+          <textarea id="editQuestion" class="input" rows="3" oninput="autoSave()"></textarea>
+        </div>
+        <div class="form-group">
+          <label>问题配图</label>
+          <div class="upload-row">
+            <input id="editQuestionImage" class="input" placeholder="图片URL" oninput="autoSave()">
+            <button class="btn btn-secondary" onclick="uploadImg('question')">上传</button>
+          </div>
+          <img id="questionImagePreview" class="img-preview" style="display:none">
+        </div>
+        <div class="form-group">
+          <label>正确答案</label>
+          <input id="editAnswer" class="input" oninput="autoSave()">
+        </div>
+        <div class="form-group">
+          <label>答案匹配规则</label>
+          <select id="editMatchRule" class="input" onchange="autoSave()">
+            <option value="exact">精确匹配</option>
+            <option value="case_insensitive">忽略大小写</option>
+            <option value="fuzzy">模糊匹配（包含即可）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>最大尝试次数（留空为不限）</label>
+          <input id="editMaxAttempts" type="number" class="input" oninput="autoSave()">
+        </div>
+        <div class="form-group">
+          <label>错误提示文案</label>
+          <input id="editErrorHint" class="input" oninput="autoSave()">
+        </div>
+        <div class="form-group">
+          <label>道具</label>
+          <div id="itemsList" class="items-list"></div>
+          <button class="btn btn-sm btn-primary" onclick="addItem()" style="margin-top:6px">+ 添加道具</button>
+        </div>
+      </div>
+
+    </div>
+    <div id="gameConfigEditor" class="editor-content" style="display:none">
+  <h3 style="color:#64ffda;margin-bottom:16px">⚙ 游戏设置</h3>
+  <div class="form-group">
+    <label>游戏名称</label>
+    <input id="editGameName" class="input" oninput="autoSaveGame()">
+  </div>
+  <div class="form-group">
+    <label>封面标题</label>
+    <input id="editCoverTitle" class="input" oninput="autoSaveGame()">
+  </div>
+  <div class="form-group">
+    <label>封面副标题</label>
+    <input id="editCoverSubtitle" class="input" oninput="autoSaveGame()">
+  </div>
+  <div class="form-group">
+    <label>按钮文字</label>
+    <input id="editCoverBtnText" class="input" oninput="autoSaveGame()">
+  </div>
+  <div class="form-group">
+    <label>封面背景（支持上传图片）</label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="editCoverBg" class="input" placeholder="颜色值、CSS渐变或图片URL" oninput="updateCoverBgPreview();autoSaveGame()">
+      <button class="btn btn-sm" onclick="uploadCoverBg()" title="上传图片">📁</button>
+      <span id="coverBgPreview" class="bg-preview" style="background:linear-gradient(135deg,#0a0e27 0%,#1a1040 50%,#0a0e27 100%)"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label>章节副标题</label>
+    <div id="chapterSubtitleEditor"></div>
+    <div style="margin-top:6px;font-size:12px;color:#4a5580">每章一行，格式：章节名称 = 副标题</div>
+  </div>
+  <div class="form-group">
+    <button class="btn btn-primary" onclick="manualSaveGame()">💾 保存游戏设置</button>
+    <span id="gameSaveStatus" style="font-size:13px;color:#8892b0;margin-left:12px"></span>
+  </div>
+</div>
+  </main>
+</div>
+
+<div id="imgUploadModal" class="modal" style="display:none">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <h3>上传图片</h3>
+    <input type="file" id="fileInput" accept="image/jpeg,image/png" onchange="handleUpload()">
+    <div id="uploadProgress" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<script src="/js/admin.js"></script>
+</body>
+</html>

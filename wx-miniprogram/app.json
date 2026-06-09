@@ -1,0 +1,12 @@
+{
+  "pages": ["pages/index/index", "pages/play/play"],
+  "window": {
+    "navigationBarBackgroundColor": "#0a0e27",
+    "navigationBarTitleText": "谜境探索",
+    "navigationBarTextStyle": "white",
+    "navigationStyle": "custom",
+    "backgroundColor": "#0a0e27"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

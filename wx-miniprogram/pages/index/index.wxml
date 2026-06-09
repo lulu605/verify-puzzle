@@ -1,0 +1,8 @@
+<view class="cover" style="background:{{coverBg}}">
+  <view class="cover-stars">
+    <view wx:for="{{stars}}" wx:key="*this" class="star" style="left:{{item.x}}%;top:{{item.y}}%;animation-delay:{{item.delay}}s;width:{{item.size}}px;height:{{item.size}}px"></view>
+  </view>
+  <view class="cover-title">{{coverTitle}}</view>
+  <view class="cover-subtitle">{{coverSubtitle}}</view>
+  <button class="cover-btn" bindtap="startGame">{{coverBtnText}}</button>
+</view>

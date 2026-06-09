@@ -1,0 +1,101 @@
+<view class="container" style="background:{{pageBg}}">
+  <!-- Chapter title overlay -->
+  <view class="chapter-overlay {{chapterOverlayClass}}" wx:if="{{showChapterOverlay}}">
+    <view class="chapter-title-text">{{chapterTitle}}</view>
+    <view class="chapter-subtitle-text">{{chapterSubtitle}}</view>
+  </view>
+
+  <!-- Dialogue phase -->
+  <view class="dialogue-phase" wx:if="{{!showPuzzle && !showChapterOverlay}}" bindtap="onTapScreen">
+    <view class="progress-dots">
+      <view wx:for="{{progressDots}}" wx:key="*this" class="dot {{item.active?'active':''}} {{item.done?'done':''}}"></view>
+    </view>
+    <view class="character-area" style="background:{{charBg}}">
+      <image class="character-art" src="{{charArt}}" wx:if="{{charArt}}" mode="aspectFill"></image>
+      <view class="character-name-tag" wx:if="{{charArt}}">{{speakerName}}</view>
+      <view class="char-placeholder" wx:if="{{!charArt}}"></view>
+    </view>
+    <view class="dialogue-box">
+      <view class="speaker-label" wx:if="{{speakerLabel}}">{{speakerLabel}}</view>
+      <view class="dialogue-text">{{dialogueText}}</view>
+      <view class="typewriter-cursor" wx:if="{{isTyping}}">▊</view>
+      <view class="click-hint" wx:if="{{showClickHint}}">点击继续 ▸</view>
+      <button class="go-puzzle-btn" wx:if="{{showGoPuzzle}}" bindtap="showPuzzle">前往验证 ➜</button>
+      <button class="history-btn" wx:if="{{showHistoryBtn}}" bindtap="showHistory">查看历史会话</button>
+    </view>
+  </view>
+
+  <!-- Puzzle phase -->
+  <view class="puzzle-area" wx:if="{{showPuzzle}}">
+    <view class="puzzle-card">
+      <image class="puzzle-image" src="{{puzzleImage}}" wx:if="{{puzzleImage}}" mode="widthFix"></image>
+      <view class="puzzle-question">{{puzzleQuestion}}</view>
+      <input class="puzzle-input" value="{{puzzleInput}}" bindinput="onInputChange" placeholder="请输入你的答案..." maxlength="50" disabled="{{submitDisabled}}"></input>
+      <button class="puzzle-submit" bindtap="submitAnswer" disabled="{{submitDisabled}}">提交答案</button>
+      <view class="puzzle-error">{{puzzleError}}</view>
+      <view class="puzzle-attempts">{{puzzleAttempts}}</view>
+      <view wx:if="{{showAnswerReveal}}">
+        <button class="puzzle-submit reveal-btn" wx:if="{{!answerRevealed}}" bindtap="revealAnswer">👁 查看正确答案</button>
+        <view class="correct-answer" wx:if="{{answerRevealed}}">{{correctAnswer}}</view>
+        <button class="next-btn" wx:if="{{answerRevealed}}" bindtap="proceedAfterFail">下一步 ➜</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- Overlays -->
+  <view class="success-overlay" wx:if="{{showSuccessOverlay}}">
+    <view class="success-content">
+      <view class="success-title">✓ 回答正确!</view>
+      <view class="node-options">
+        <button wx:for="{{nodeOptions}}" wx:key="node_id" class="node-opt-btn" data-id="{{item.node_id}}" bindtap="goToNode">➜ {{item.node_name}}</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="history-overlay {{historyVisible?'active':''}}">
+    <view class="h-header">
+      <view class="h-title">📜 对话历史</view>
+      <view class="h-close" bindtap="closeHistory">关闭</view>
+    </view>
+    <scroll-view class="h-body" scroll-y>
+      <view wx:for="{{historyList}}" wx:key="*this" class="h-entry">
+        <view wx:if="{{item.speaker}}" class="h-speaker">
+          <image src="{{item.avatar}}" wx:if="{{item.avatar}}" class="h-avatar"></image>
+          <text class="h-speaker-name">{{item.speaker}}</text>
+        </view>
+        <view class="h-text">{{item.text}}</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="backpack-overlay {{backpackVisible?'active':''}}">
+    <view class="h-header">
+      <view class="h-title">🎒 道具背包</view>
+      <view class="h-close" bindtap="closeBackpack">关闭</view>
+    </view>
+    <view class="h-body">
+      <view wx:if="{{backpackItems.length===0}}" style="text-align:center;color:#4a5580;padding:40px 0">暂无道具</view>
+      <view wx:else class="backpack-grid">
+        <view wx:for="{{backpackItems}}" wx:key="*this" class="backpack-item" bindtap="enlargeItem" data-src="{{item.image}}" data-name="{{item.name}}">
+          <image src="{{item.image}}" mode="aspectFill"></image>
+          <view class="item-name" wx:if="{{item.name}}">{{item.name}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Enlarge overlay -->
+  <view class="enlarge-overlay {{enlargeVisible?'active':''}}" bindtap="closeEnlarge">
+    <image src="{{enlargeSrc}}" mode="aspectFit" wx:if="{{enlargeSrc}}"></image>
+    <view class="enlarge-name" wx:if="{{enlargeName}}">{{enlargeName}}</view>
+  </view>
+
+  <!-- Buttons -->
+  <button class="backpack-btn {{showGameBtns?'active':''}}" bindtap="toggleBackpack">🎒</button>
+  <button class="restart-btn {{showGameBtns?'active':''}}" bindtap="confirmRestart">↺ 重新开始</button>
+  <view class="node-selector" wx:if="{{showNodeSelector}}">
+    <picker bindchange="onNodeSelect" range="{{nodeSelectorOptions}}" range-key="node_name" value="{{nodeSelectorIndex}}">
+      <view class="picker-trigger">跳转: {{nodeSelectorLabel}}</view>
+    </picker>
+  </view>
+</view>
