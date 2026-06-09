@@ -17,6 +17,18 @@ async function api(path, opts = {}) {
   return res.json();
 }
 
+function enterSite() {
+  document.getElementById('entryOverlay').style.display = 'none';
+  const audio = document.getElementById('bgMusic');
+  if (audio && gameConfig.cover_music) {
+    currentChapterMusic = gameConfig.cover_music;
+    audio.src = gameConfig.cover_music;
+    audio.volume = 0.3;
+    audio.loop = true;
+    audio.play().catch(() => {});
+  }
+}
+
 async function init() {
   const [nodes, gameCfg] = await Promise.all([
     api('/api/nodes'),
@@ -47,23 +59,6 @@ async function init() {
   if (savedInventory) {
     try { inventory = JSON.parse(savedInventory); } catch(e) { inventory = []; }
   }
-  document.addEventListener('click', function initAudio() {
-    const audio = document.getElementById('bgMusic');
-    if (audio) {
-      const isCoverVisible = document.getElementById('coverScreen').style.display !== 'none';
-      if (isCoverVisible && gameConfig.cover_music) {
-        currentChapterMusic = gameConfig.cover_music;
-        audio.src = gameConfig.cover_music;
-        audio.volume = 0.3;
-        audio.loop = true;
-        audio.play().catch(() => {});
-      } else if (!audio.src) {
-        audio.play().catch(() => {});
-      }
-    }
-    document.removeEventListener('click', initAudio);
-  }, { once: true });
-
   if (savedNodeId) {
     try {
       currentNode = await api('/api/nodes/' + savedNodeId);
