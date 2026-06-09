@@ -41,7 +41,6 @@ async function init() {
   if (gameCfg.cover_button_text) btn.textContent = gameCfg.cover_button_text;
   document.title = gameCfg.game_name || '验证谜题';
   gameConfig = gameCfg;
-  if (gameCfg.cover_music) playCoverMusic();
 
   const savedNodeId = localStorage.getItem('puzzle_current_node');
   const savedInventory = localStorage.getItem('puzzle_inventory');
@@ -50,7 +49,18 @@ async function init() {
   }
   document.addEventListener('click', function initAudio() {
     const audio = document.getElementById('bgMusic');
-    if (audio) { audio.play().catch(() => {}); audio.pause(); audio.src = ''; }
+    if (audio) {
+      const isCoverVisible = document.getElementById('coverScreen').style.display !== 'none';
+      if (isCoverVisible && gameConfig.cover_music) {
+        currentChapterMusic = gameConfig.cover_music;
+        audio.src = gameConfig.cover_music;
+        audio.volume = 0.3;
+        audio.loop = true;
+        audio.play().catch(() => {});
+      } else if (!audio.src) {
+        audio.play().catch(() => {});
+      }
+    }
     document.removeEventListener('click', initAudio);
   }, { once: true });
 
