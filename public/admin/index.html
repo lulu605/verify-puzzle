@@ -162,6 +162,11 @@
     <div style="margin-top:6px;font-size:12px;color:#4a5580">每章一行，格式：章节名称 = 副标题</div>
   </div>
   <div class="form-group">
+    <label>章节音乐</label>
+    <div id="chapterMusicEditor"></div>
+    <div style="margin-top:6px;font-size:12px;color:#4a5580">每个章节可设置一首背景音乐（mp3），进入章节时自动播放</div>
+  </div>
+  <div class="form-group">
     <button class="btn btn-primary" onclick="manualSaveGame()">💾 保存游戏设置</button>
     <span id="gameSaveStatus" style="font-size:13px;color:#8892b0;margin-left:12px"></span>
   </div>
@@ -172,8 +177,8 @@
 <div id="imgUploadModal" class="modal" style="display:none">
   <div class="modal-content">
     <span class="modal-close" onclick="closeModal()">&times;</span>
-    <h3>上传图片</h3>
-    <input type="file" id="fileInput" accept="image/jpeg,image/png" onchange="handleUpload()">
+    <h3>上传文件</h3>
+    <input type="file" id="fileInput" accept="image/jpeg,image/png,audio/mpeg,audio/wav,audio/ogg" onchange="handleUpload()">
     <div id="uploadProgress" style="margin-top:10px"></div>
   </div>
 </div>

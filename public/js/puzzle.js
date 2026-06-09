@@ -5,6 +5,8 @@ let attempts = 0;
 let isPaused = false;
 let dialogueHistory = [];
 let inventory = [];
+let gameConfig = {};
+let currentChapterMusic = null;
 
 async function api(path, opts = {}) {
   const res = await fetch(path, {
@@ -38,12 +40,19 @@ async function init() {
   const btn = document.querySelector('.cover-btn');
   if (gameCfg.cover_button_text) btn.textContent = gameCfg.cover_button_text;
   document.title = gameCfg.game_name || '验证谜题';
+  gameConfig = gameCfg;
 
   const savedNodeId = localStorage.getItem('puzzle_current_node');
   const savedInventory = localStorage.getItem('puzzle_inventory');
   if (savedInventory) {
     try { inventory = JSON.parse(savedInventory); } catch(e) { inventory = []; }
   }
+  document.addEventListener('click', function initAudio() {
+    const audio = document.getElementById('bgMusic');
+    if (audio) { audio.play().catch(() => {}); audio.pause(); audio.src = ''; }
+    document.removeEventListener('click', initAudio);
+  }, { once: true });
+
   if (savedNodeId) {
     try {
       currentNode = await api('/api/nodes/' + savedNodeId);
@@ -134,6 +143,7 @@ async function loadNode(nodeId) {
   document.getElementById('charArt').style.display = 'none';
   document.getElementById('charNameTag').style.display = 'none';
   renderProgress(currentNode.dialogues.length);
+  playChapterMusic(currentNode.chapter);
   await playDialogues();
 }
 
@@ -161,6 +171,23 @@ function applyBackground(bg) {
   } else {
     body.style.background = bg + ' center/cover no-repeat fixed';
   }
+}
+
+function playChapterMusic(chapterName) {
+  const audio = document.getElementById('bgMusic');
+  if (!audio) return;
+  const musicUrl = (gameConfig.chapter_music || {})[chapterName];
+  if (!musicUrl) {
+    audio.pause();
+    audio.src = '';
+    currentChapterMusic = null;
+    return;
+  }
+  if (musicUrl === currentChapterMusic && !audio.paused) return;
+  currentChapterMusic = musicUrl;
+  audio.src = musicUrl;
+  audio.volume = 0.3;
+  audio.play().catch(() => {});
 }
 
 function renderProgress(count) {

@@ -28,9 +28,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = ['.jpg', '.jpeg', '.png', '.gif'];
+    const allowed = ['.jpg', '.jpeg', '.png', '.gif', '.mp3', '.wav', '.ogg'];
     const ext = path.extname(file.originalname).toLowerCase();
     cb(null, allowed.includes(ext));
   }
@@ -69,7 +69,8 @@ const DEFAULT_GAME_CONFIG = {
   cover_subtitle: '— 验证谜题 —',
   cover_button_text: '开始游戏',
   game_name: '验证谜题小程序',
-  cover_background: 'linear-gradient(135deg,#0a0e27 0%,#1a1040 50%,#0a0e27 100%)'
+  cover_background: 'linear-gradient(135deg,#0a0e27 0%,#1a1040 50%,#0a0e27 100%)',
+  chapter_music: {}
 };
 
 app.get('/api/game-config', (req, res) => {

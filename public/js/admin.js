@@ -379,6 +379,11 @@ async function handleUpload() {
       document.getElementById('editBgValue').value = 'url(' + data.url + ')';
       updateBgPreview();
       autoSave();
+    } else if (uploadTarget === 'music' && uploadMusicChapter) {
+      const input = document.querySelector(`.ch-music-input[data-chapter="${uploadMusicChapter}"]`);
+      if (input) input.value = data.url;
+      renderMusicEditor(getMusicFromInputs());
+      autoSaveGame();
     }
     progress.textContent = '上传成功 ✓';
     closeModal();
@@ -516,6 +521,7 @@ async function loadGameConfig() {
     document.getElementById('editCoverBg').value = cfg.cover_background || '';
     updateCoverBgPreview();
     renderSubtitleEditor(cfg.chapter_subtitles || {});
+    renderMusicEditor(cfg.chapter_music || {});
   } catch (e) { console.error('加载游戏配置失败', e); }
 }
 
@@ -530,6 +536,52 @@ function renderSubtitleEditor(subtitles) {
       <input class="input ch-sub-input" data-chapter="${escHtml(ch)}" value="${escHtml(subtitles[ch] || '')}" placeholder="副标题（可选）" style="flex:1">
     </div>`
   ).join('');
+}
+
+function renderMusicEditor(music) {
+  const container = document.getElementById('chapterMusicEditor');
+  const chapters = document.querySelectorAll('.chapter-header .chapter-name');
+  const names = [...new Set(Array.from(chapters).map(el => el.textContent))];
+  if (names.length === 0) { container.innerHTML = '<div style="color:#4a5580;font-size:13px">暂无章节</div>'; return; }
+  container.innerHTML = names.map(ch =>
+    `<div style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
+      <span style="width:80px;font-size:13px;color:#64ffda;flex-shrink:0">${escHtml(ch)}</span>
+      <input class="input ch-music-input" data-chapter="${escHtml(ch)}" value="${escHtml(music[ch] || '')}" placeholder="音乐URL或留空" style="flex:1" readonly onclick="uploadChapterMusic('${escHtml(ch)}')">
+      ${music[ch] ? `<button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();playChapterMusic('${escHtml(ch)}')">▶</button><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();clearChapterMusic('${escHtml(ch)}')">×</button>` : ''}
+    </div>`
+  ).join('');
+}
+
+function uploadChapterMusic(chapterName) {
+  uploadTarget = 'music';
+  uploadMusicChapter = chapterName;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('imgUploadModal').style.display = 'flex';
+}
+
+let uploadMusicChapter = null;
+
+function playChapterMusic(chapterName) {
+  const input = document.querySelector(`.ch-music-input[data-chapter="${chapterName}"]`);
+  if (!input || !input.value) return;
+  const audio = new Audio(input.value);
+  audio.play().catch(e => alert('播放失败: ' + e.message));
+}
+
+function clearChapterMusic(chapterName) {
+  const input = document.querySelector(`.ch-music-input[data-chapter="${chapterName}"]`);
+  if (input) input.value = '';
+  renderMusicEditor(getMusicFromInputs());
+  autoSaveGame();
+}
+
+function getMusicFromInputs() {
+  const music = {};
+  document.querySelectorAll('.ch-music-input').forEach(inp => {
+    const val = inp.value.trim();
+    if (val) music[inp.dataset.chapter] = val;
+  });
+  return music;
 }
 
 function updateCoverBgPreview() {
@@ -553,6 +605,7 @@ async function saveGameConfig() {
     const val = inp.value.trim();
     if (val) subtitles[ch] = val;
   });
+  const music = getMusicFromInputs();
   await api('/api/game-config', {
     method: 'PUT',
     body: JSON.stringify({
@@ -561,7 +614,8 @@ async function saveGameConfig() {
       cover_subtitle: document.getElementById('editCoverSubtitle').value,
       cover_button_text: document.getElementById('editCoverBtnText').value,
       cover_background: document.getElementById('editCoverBg').value,
-      chapter_subtitles: subtitles
+      chapter_subtitles: subtitles,
+      chapter_music: music
     })
   });
 }
