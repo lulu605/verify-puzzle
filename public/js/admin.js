@@ -154,6 +154,9 @@ async function selectNode(id) {
   document.getElementById('editMatchRule').value = node.puzzle?.answer_match_rule || 'exact';
   document.getElementById('editMaxAttempts').value = node.puzzle?.max_attempts || '';
   document.getElementById('editErrorHint').value = node.puzzle?.error_hint || '';
+  document.getElementById('editClue1').value = (node.puzzle?.clues || [])[0] || '';
+  document.getElementById('editClue2').value = (node.puzzle?.clues || [])[1] || '';
+  document.getElementById('editClue3').value = (node.puzzle?.clues || [])[2] || '';
 
   previewIdx = 0;
   renderDialogues(node.dialogues || []);
@@ -277,6 +280,7 @@ async function autoSaveNow() {
       answer_match_rule: document.getElementById('editMatchRule').value,
       max_attempts: document.getElementById('editMaxAttempts').value ? parseInt(document.getElementById('editMaxAttempts').value) : null,
       error_hint: document.getElementById('editErrorHint').value,
+      clues: [document.getElementById('editClue1').value, document.getElementById('editClue2').value, document.getElementById('editClue3').value].filter(c => c.trim()),
       items: getItems()
     })
   });

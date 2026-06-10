@@ -130,6 +130,21 @@
           <input id="editErrorHint" class="input" oninput="autoSave()">
         </div>
         <div class="form-group">
+          <label>线索提示（按错误次数依次显示）</label>
+          <div class="clue-row" style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
+            <span style="color:#ffa502;font-size:13px;width:50px">线索1</span>
+            <input id="editClue1" class="input" placeholder="第一次错误时显示" oninput="autoSave()" style="flex:1">
+          </div>
+          <div class="clue-row" style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
+            <span style="color:#ffa502;font-size:13px;width:50px">线索2</span>
+            <input id="editClue2" class="input" placeholder="第二次错误时显示" oninput="autoSave()" style="flex:1">
+          </div>
+          <div class="clue-row" style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
+            <span style="color:#ffa502;font-size:13px;width:50px">线索3</span>
+            <input id="editClue3" class="input" placeholder="第三次错误时显示" oninput="autoSave()" style="flex:1">
+          </div>
+        </div>
+        <div class="form-group">
           <label>道具</label>
           <div id="itemsList" class="items-list"></div>
           <button class="btn btn-sm btn-primary" onclick="addItem()" style="margin-top:6px">+ 添加道具</button>

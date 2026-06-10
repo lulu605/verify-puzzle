@@ -138,6 +138,7 @@ async function loadNode(nodeId) {
   document.getElementById('puzzleInput').disabled = false;
   document.getElementById('submitBtn').disabled = false;
   document.getElementById('puzzleAttempts').textContent = '';
+  document.getElementById('clueContainer').innerHTML = '';
 
   dialogueHistory = [];
   document.getElementById('backpackBtn').style.display = 'flex';
@@ -396,6 +397,12 @@ async function submitAnswer() {
       input.className = 'puzzle-input error';
       document.getElementById('puzzleError').textContent = result.message || '答案不对，再想想！';
 
+      const clues = currentNode.puzzle?.clues || [];
+      const clueIdx = attempts - 1;
+      if (clues[clueIdx]) {
+        showClue(clues[clueIdx], clueIdx);
+      }
+
       const maxA = currentNode.puzzle.max_attempts;
       if (maxA && attempts >= maxA) {
         document.getElementById('puzzleAnswerReveal').style.display = 'block';
@@ -521,6 +528,19 @@ function enlargeItem(src, name) {
   bg.innerHTML = `<div style="text-align:center;max-width:85vw"><img src="${escHtml(src)}" style="max-width:85vw;max-height:75vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)">${name ? `<div style="color:#fff;font-size:15px;margin-top:12px">${escHtml(name)}</div>` : ''}</div>`;
   bg.onclick = () => bg.remove();
   document.body.appendChild(bg);
+}
+
+function showClue(text, idx) {
+  const container = document.getElementById('clueContainer');
+  const btn = document.createElement('button');
+  btn.className = 'clue-btn';
+  btn.textContent = '💡 查看线索 ' + (idx + 1);
+  btn.onclick = () => {
+    if (btn.classList.contains('revealed')) return;
+    btn.classList.add('revealed');
+    btn.innerHTML = '🔍 ' + escHtml(text);
+  };
+  container.appendChild(btn);
 }
 
 function revealAnswer() {
