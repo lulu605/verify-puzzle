@@ -52,7 +52,14 @@
             <span id="bgPreview" class="bg-preview" style="background:#0a0e27"></span>
           </div>
         </div>
-        <div class="form-group">
+          <div class="form-group">
+          <label>对话栏背景</label>
+          <div class="bg-row">
+            <input id="editDialogueBg" class="input" placeholder="颜色代码或CSS（留空为默认半透明）" oninput="autoSave()" style="flex:1">
+            <span id="dialogueBgPreview" class="bg-preview" style="background:rgba(0,0,0,0.7)"></span>
+          </div>
+        </div>
+          <div class="form-group">
           <label>跳转节点（验证通过后）</label>
           <select id="editNextNode" class="input" onchange="autoSave()">
             <option value="">无 - 未设置</option>

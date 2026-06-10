@@ -129,6 +129,7 @@ async function loadNode(nodeId) {
   document.querySelectorAll('.success-overlay').forEach(el => el.remove());
   closeHistory();
   applyBackground(currentNode.background);
+  applyDialogueBg(currentNode.dialogue_bg);
   document.getElementById('dialoguePhase').style.display = 'flex';
   document.getElementById('puzzleArea').style.display = 'none';
   document.getElementById('puzzleError').textContent = '';
@@ -188,6 +189,17 @@ function playCoverMusic() {
   audio.volume = 0.3;
   audio.loop = true;
   audio.play().catch(() => {});
+}
+
+function applyDialogueBg(val) {
+  const box = document.getElementById('dialogueBox');
+  if (!val) {
+    box.style.background = 'rgba(0,0,0,0.7)';
+    box.style.backdropFilter = 'blur(8px)';
+  } else {
+    box.style.background = val;
+    box.style.backdropFilter = 'none';
+  }
 }
 
 function playChapterMusic(chapterName) {

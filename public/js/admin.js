@@ -132,6 +132,7 @@ async function selectNode(id) {
   const bgVal = typeof node.background === 'object' ? node.background?.value || '' : node.background || '';
   document.getElementById('editBgValue').value = bgVal;
   updateBgPreview();
+  document.getElementById('editDialogueBg').value = node.dialogue_bg || '';
 
 
   const nextSelect = document.getElementById('editNextNode');
@@ -259,6 +260,7 @@ async function autoSaveNow() {
       node_name: document.getElementById('editNodeName').value,
       chapter: document.getElementById('editChapter').value,
       background: bgValue || null,
+      dialogue_bg: document.getElementById('editDialogueBg').value || null,
       next_node_id: document.getElementById('editNextNode').value || null
     })
   });
