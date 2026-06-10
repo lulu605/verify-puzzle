@@ -401,10 +401,7 @@ async function submitAnswer() {
       const maxA = currentNode.puzzle.max_attempts;
       if (maxA && attempts >= maxA) {
         document.getElementById('puzzleError').textContent += ' (已耗尽尝试次数)';
-        document.getElementById('puzzleInput').disabled = true;
-        document.getElementById('submitBtn').disabled = true;
         document.getElementById('puzzleAnswerReveal').style.display = 'block';
-        return;
       }
       document.getElementById('puzzleAttempts').textContent =
         maxA ? `剩余尝试次数: ${maxA - attempts}` : '';
