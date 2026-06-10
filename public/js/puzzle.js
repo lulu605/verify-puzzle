@@ -137,6 +137,7 @@ async function loadNode(nodeId) {
   document.getElementById('puzzleInput').className = 'puzzle-input';
   document.getElementById('puzzleInput').disabled = false;
   document.getElementById('submitBtn').disabled = false;
+  document.getElementById('puzzleAttempts').textContent = '';
 
   dialogueHistory = [];
   document.getElementById('backpackBtn').style.display = 'flex';
@@ -367,9 +368,6 @@ function showPuzzle() {
     pImg.style.display = 'none';
   }
 
-  const maxA = puzzle.max_attempts;
-  document.getElementById('puzzleAttempts').textContent =
-    maxA ? `剩余尝试次数: ${maxA - attempts}` : '';
   document.getElementById('puzzleError').textContent = '';
 
   document.getElementById('puzzleInput').focus();
@@ -400,11 +398,8 @@ async function submitAnswer() {
 
       const maxA = currentNode.puzzle.max_attempts;
       if (maxA && attempts >= maxA) {
-        document.getElementById('puzzleError').textContent += ' (已耗尽尝试次数)';
         document.getElementById('puzzleAnswerReveal').style.display = 'block';
       }
-      document.getElementById('puzzleAttempts').textContent =
-        maxA ? `剩余尝试次数: ${maxA - attempts}` : '';
       document.getElementById('submitBtn').disabled = false;
       input.focus();
       setTimeout(() => input.className = 'puzzle-input', 500);
