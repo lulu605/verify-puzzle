@@ -69,7 +69,8 @@ async function init() {
 
   const cover = document.querySelector('.cover');
   if (gameCfg.cover_background) {
-    cover.style.background = gameCfg.cover_background + ' center/cover no-repeat';
+    cover.style.setProperty('--cover-bg', gameCfg.cover_background);
+    cover.classList.add('with-bg');
   }
   const title = document.querySelector('.cover-title');
   if (gameCfg.cover_title) title.textContent = gameCfg.cover_title;
