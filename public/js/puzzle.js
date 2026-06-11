@@ -17,15 +17,42 @@ async function api(path, opts = {}) {
   return res.json();
 }
 
+let audioCtx = null;
+let bgSource = null;
+let bgGain = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+async function playMusic(url) {
+  try {
+    if (bgSource) { bgSource.stop(); bgSource.disconnect(); bgSource = null; }
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') await ctx.resume();
+    const resp = await fetch(url);
+    const buf = await resp.arrayBuffer();
+    const audioBuf = await ctx.decodeAudioData(buf);
+    bgGain = ctx.createGain();
+    bgGain.gain.value = 0.3;
+    bgSource = ctx.createBufferSource();
+    bgSource.buffer = audioBuf;
+    bgSource.loop = true;
+    bgSource.connect(bgGain).connect(ctx.destination);
+    bgSource.start();
+  } catch (e) { console.warn('Audio error', e); }
+}
+
+function stopMusic() {
+  if (bgSource) { try { bgSource.stop(); } catch(e){} bgSource.disconnect(); bgSource = null; }
+}
+
 function enterSite() {
   document.getElementById('entryOverlay').style.display = 'none';
-  const audio = document.getElementById('bgMusic');
-  if (audio && gameConfig.cover_music) {
+  if (gameConfig.cover_music) {
     currentChapterMusic = gameConfig.cover_music;
-    audio.src = gameConfig.cover_music;
-    audio.volume = 0.3;
-    audio.loop = true;
-    audio.play().catch(() => {});
+    playMusic(gameConfig.cover_music);
   }
 }
 
@@ -181,14 +208,10 @@ function applyBackground(bg) {
 }
 
 function playCoverMusic() {
-  const audio = document.getElementById('bgMusic');
-  if (!audio || !gameConfig.cover_music) return;
-  if (currentChapterMusic === gameConfig.cover_music && !audio.paused) return;
+  if (!gameConfig.cover_music) return;
+  if (currentChapterMusic === gameConfig.cover_music) return;
   currentChapterMusic = gameConfig.cover_music;
-  audio.src = gameConfig.cover_music;
-  audio.volume = 0.3;
-  audio.loop = true;
-  audio.play().catch(() => {});
+  playMusic(gameConfig.cover_music);
 }
 
 function applyDialogueBg(val) {
@@ -203,20 +226,15 @@ function applyDialogueBg(val) {
 }
 
 function playChapterMusic(chapterName) {
-  const audio = document.getElementById('bgMusic');
-  if (!audio) return;
   const musicUrl = (gameConfig.chapter_music || {})[chapterName];
   if (!musicUrl) {
-    audio.pause();
-    audio.src = '';
+    stopMusic();
     currentChapterMusic = null;
     return;
   }
-  if (musicUrl === currentChapterMusic && !audio.paused) return;
+  if (musicUrl === currentChapterMusic) return;
   currentChapterMusic = musicUrl;
-  audio.src = musicUrl;
-  audio.volume = 0.3;
-  audio.play().catch(() => {});
+  playMusic(musicUrl);
 }
 
 function renderProgress(count) {
