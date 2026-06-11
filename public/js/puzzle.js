@@ -433,6 +433,15 @@ async function submitAnswer() {
   }
 }
 
+async function getNextChapterNodeId() {
+  if (!currentNode?.chapter) return null;
+  const chapters = await api('/api/chapters');
+  const idx = chapters.findIndex(ch => ch.name === currentNode.chapter);
+  if (idx < 0 || idx >= chapters.length - 1) return null;
+  const nextCh = chapters[idx + 1];
+  return nextCh.node_ids[0] || null;
+}
+
 async function showSuccess(result) {
   const nodeItems = currentNode?.puzzle?.items || [];
   let newItems = [];
@@ -452,6 +461,19 @@ async function showSuccess(result) {
     await delay(800);
     overlay.remove();
     loadNode(result.next_node_id);
+    return;
+  }
+
+  const nextChNode = await getNextChapterNodeId();
+  if (nextChNode) {
+    if (newItems.length) showToast('🎁 获得 ' + newItems.map(i => i.name).join('、') + '，打开背包查看');
+    const overlay = document.createElement('div');
+    overlay.className = 'success-overlay';
+    overlay.innerHTML = `<div class="success-content"><h2>✓ 回答正确!</h2><p>即将进入下一章节...</p></div>`;
+    document.getElementById('app').appendChild(overlay);
+    await delay(800);
+    overlay.remove();
+    loadNode(nextChNode);
     return;
   }
 
@@ -584,9 +606,14 @@ async function proceedAfterFail() {
   }
   if (currentNode.next_node_id) {
     loadNode(currentNode.next_node_id);
-  } else {
-    showSuccess({ correct: true, message: '已显示正确答案，选择要前往的节点：', next_node_id: null });
+    return;
   }
+  const nextChNode = await getNextChapterNodeId();
+  if (nextChNode) {
+    loadNode(nextChNode);
+    return;
+  }
+  showSuccess({ correct: true, message: '已显示正确答案，选择要前往的节点：', next_node_id: null });
 }
 
 function showToast(msg) {
