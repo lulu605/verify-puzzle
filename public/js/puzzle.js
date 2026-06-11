@@ -70,7 +70,6 @@ async function init() {
   const cover = document.querySelector('.cover');
   if (gameCfg.cover_background) {
     cover.style.background = gameCfg.cover_background + ' center/cover no-repeat';
-    cover.classList.add('spin');
   }
   const title = document.querySelector('.cover-title');
   if (gameCfg.cover_title) title.textContent = gameCfg.cover_title;
