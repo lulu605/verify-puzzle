@@ -435,14 +435,15 @@ async function submitAnswer() {
   }
 }
 
-async function getNextChapter() {
-  if (!currentNode?.chapter) return null;
-  const chapters = await api('/api/chapters');
-  const idx = chapters.findIndex(ch => ch.name === currentNode.chapter);
-  if (idx < 0 || idx >= chapters.length - 1) return null;
-  const nextCh = chapters[idx + 1];
-  if (!nextCh.node_ids[0]) return null;
-  return nextCh;
+async function getNextAuto() {
+  const allNodes = await api('/api/nodes');
+  const myIdx = allNodes.findIndex(n => n.node_id === currentNode.node_id);
+  if (myIdx >= 0 && myIdx < allNodes.length - 1) {
+    const next = allNodes[myIdx + 1];
+    if (next.chapter === currentNode.chapter) return { node_id: next.node_id };
+    return { node_id: next.node_id, chapter: next.chapter };
+  }
+  return null;
 }
 
 async function showChapterOverlay(chapterName) {
@@ -485,11 +486,11 @@ async function showSuccess(result) {
     return;
   }
 
-  const nextCh = await getNextChapter();
-  if (nextCh) {
+  const nextAuto = await getNextAuto();
+  if (nextAuto) {
     if (newItems.length) showToast('🎁 获得 ' + newItems.map(i => i.name).join('、') + '，打开背包查看');
-    await showChapterOverlay(nextCh.name);
-    loadNode(nextCh.node_ids[0]);
+    if (nextAuto.chapter) await showChapterOverlay(nextAuto.chapter);
+    loadNode(nextAuto.node_id);
     return;
   }
 
@@ -628,10 +629,10 @@ async function proceedAfterFail() {
     loadNode(currentNode.next_node_id);
     return;
   }
-  const nextCh = await getNextChapter();
-  if (nextCh) {
-    await showChapterOverlay(nextCh.name);
-    loadNode(nextCh.node_ids[0]);
+  const nextAuto = await getNextAuto();
+  if (nextAuto) {
+    if (nextAuto.chapter) await showChapterOverlay(nextAuto.chapter);
+    loadNode(nextAuto.node_id);
     return;
   }
   showSuccess({ correct: true, message: '已显示正确答案，选择要前往的节点：', next_node_id: null });
