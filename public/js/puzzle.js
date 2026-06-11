@@ -69,6 +69,7 @@ async function init() {
 
   const cover = document.querySelector('.cover');
   if (gameCfg.cover_background) {
+    cover.style.background = 'transparent';
     document.getElementById('coverBgSpin').style.background = gameCfg.cover_background + ' center/cover no-repeat';
   }
   const title = document.querySelector('.cover-title');
