@@ -80,33 +80,34 @@ async function init() {
   document.title = gameCfg.game_name || '验证谜题';
   gameConfig = gameCfg;
 
-  const savedNodeId = localStorage.getItem('puzzle_current_node');
-  const savedInventory = localStorage.getItem('puzzle_inventory');
-  if (savedInventory) {
-    try { inventory = JSON.parse(savedInventory); } catch(e) { inventory = []; }
-  }
-  if (savedNodeId) {
-    try {
-      currentNode = await api('/api/nodes/' + savedNodeId);
-      document.getElementById('coverScreen').style.display = 'none';
-      const chapterName = currentNode.chapter || '';
-      if (chapterName && chapterName !== (nodes[0]?.chapter || '')) {
-        const subtitles = gameCfg.chapter_subtitles || {};
-        document.getElementById('chapterTitleText').textContent = chapterName;
-        document.getElementById('chapterSubtitleText').textContent = subtitles[chapterName] || '';
-        document.getElementById('chapterTitleOverlay').style.display = 'flex';
-        await delay(1500);
-        document.getElementById('chapterTitleOverlay').classList.add('fade-out');
-        await delay(500);
-        document.getElementById('chapterTitleOverlay').style.display = 'none';
-        document.getElementById('chapterTitleOverlay').classList.remove('fade-out');
-      }
-      loadNode(savedNodeId);
-    } catch(e) {
-      localStorage.removeItem('puzzle_current_node');
-      localStorage.removeItem('puzzle_inventory');
-    }
-  }
+  // localStorage auto-restore disabled for testing
+  // const savedNodeId = localStorage.getItem('puzzle_current_node');
+  // const savedInventory = localStorage.getItem('puzzle_inventory');
+  // if (savedInventory) {
+  //   try { inventory = JSON.parse(savedInventory); } catch(e) { inventory = []; }
+  // }
+  // if (savedNodeId) {
+  //   try {
+  //     currentNode = await api('/api/nodes/' + savedNodeId);
+  //     document.getElementById('coverScreen').style.display = 'none';
+  //     const chapterName = currentNode.chapter || '';
+  //     if (chapterName && chapterName !== (nodes[0]?.chapter || '')) {
+  //       const subtitles = gameCfg.chapter_subtitles || {};
+  //       document.getElementById('chapterTitleText').textContent = chapterName;
+  //       document.getElementById('chapterSubtitleText').textContent = subtitles[chapterName] || '';
+  //       document.getElementById('chapterTitleOverlay').style.display = 'flex';
+  //       await delay(1500);
+  //       document.getElementById('chapterTitleOverlay').classList.add('fade-out');
+  //       await delay(500);
+  //       document.getElementById('chapterTitleOverlay').style.display = 'none';
+  //       document.getElementById('chapterTitleOverlay').classList.remove('fade-out');
+  //     }
+  //     loadNode(savedNodeId);
+  //   } catch(e) {
+  //     localStorage.removeItem('puzzle_current_node');
+  //     localStorage.removeItem('puzzle_inventory');
+  //   }
+  // }
 }
 
 function generateStars() {
@@ -146,8 +147,9 @@ async function startGame() {
 
 async function loadNode(nodeId) {
   currentNode = await api(`/api/nodes/${nodeId}`);
-  localStorage.setItem('puzzle_current_node', nodeId);
-  localStorage.setItem('puzzle_inventory', JSON.stringify(inventory));
+  // localStorage auto-save disabled for testing
+  // localStorage.setItem('puzzle_current_node', nodeId);
+  // localStorage.setItem('puzzle_inventory', JSON.stringify(inventory));
   currentDialogueIdx = 0;
   attempts = 0;
   isPaused = false;
