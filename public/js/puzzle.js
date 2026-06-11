@@ -141,7 +141,6 @@ async function loadNode(nodeId) {
 
   dialogueHistory = [];
   document.getElementById('backpackBtn').style.display = 'flex';
-  document.getElementById('restartBtn').style.display = 'block';
   document.getElementById('puzzleAnswerReveal').style.display = 'none';
   document.getElementById('puzzleCorrectAnswer').style.display = 'none';
   document.getElementById('nextAfterFailBtn').style.display = 'none';
