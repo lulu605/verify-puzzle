@@ -493,7 +493,7 @@ async function showSuccess(result) {
   const others = allNodes.filter(n => n.node_id !== currentNode.node_id);
   if (others.length > 0) {
     nodeBtns = others
-      .map(n => `<button class="node-opt-btn" onclick="loadNode('${n.node_id}')">➜ ${n.node_name}</button>`)
+      .map(n => `<button class="node-opt-btn" onclick="loadNode('${n.node_id}')">${n.chapter ? '【' + n.chapter + '】' : ''}${n.node_name}</button>`)
       .join('');
   } else {
     nodeBtns = '<p style="color:#8892b0;font-size:14px">没有其他可跳转的节点</p>';
