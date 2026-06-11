@@ -433,13 +433,26 @@ async function submitAnswer() {
   }
 }
 
-async function getNextChapterNodeId() {
+async function getNextChapter() {
   if (!currentNode?.chapter) return null;
   const chapters = await api('/api/chapters');
   const idx = chapters.findIndex(ch => ch.name === currentNode.chapter);
   if (idx < 0 || idx >= chapters.length - 1) return null;
   const nextCh = chapters[idx + 1];
-  return nextCh.node_ids[0] || null;
+  if (!nextCh.node_ids[0]) return null;
+  return nextCh;
+}
+
+async function showChapterOverlay(chapterName) {
+  const subtitles = gameConfig.chapter_subtitles || {};
+  document.getElementById('chapterTitleText').textContent = chapterName;
+  document.getElementById('chapterSubtitleText').textContent = subtitles[chapterName] || '';
+  document.getElementById('chapterTitleOverlay').style.display = 'flex';
+  await delay(1500);
+  document.getElementById('chapterTitleOverlay').classList.add('fade-out');
+  await delay(500);
+  document.getElementById('chapterTitleOverlay').style.display = 'none';
+  document.getElementById('chapterTitleOverlay').classList.remove('fade-out');
 }
 
 async function showSuccess(result) {
@@ -464,16 +477,11 @@ async function showSuccess(result) {
     return;
   }
 
-  const nextChNode = await getNextChapterNodeId();
-  if (nextChNode) {
+  const nextCh = await getNextChapter();
+  if (nextCh) {
     if (newItems.length) showToast('🎁 获得 ' + newItems.map(i => i.name).join('、') + '，打开背包查看');
-    const overlay = document.createElement('div');
-    overlay.className = 'success-overlay';
-    overlay.innerHTML = `<div class="success-content"><h2>✓ 回答正确!</h2><p>即将进入下一章节...</p></div>`;
-    document.getElementById('app').appendChild(overlay);
-    await delay(800);
-    overlay.remove();
-    loadNode(nextChNode);
+    await showChapterOverlay(nextCh.name);
+    loadNode(nextCh.node_ids[0]);
     return;
   }
 
@@ -608,9 +616,10 @@ async function proceedAfterFail() {
     loadNode(currentNode.next_node_id);
     return;
   }
-  const nextChNode = await getNextChapterNodeId();
-  if (nextChNode) {
-    loadNode(nextChNode);
+  const nextCh = await getNextChapter();
+  if (nextCh) {
+    await showChapterOverlay(nextCh.name);
+    loadNode(nextCh.node_ids[0]);
     return;
   }
   showSuccess({ correct: true, message: '已显示正确答案，选择要前往的节点：', next_node_id: null });
