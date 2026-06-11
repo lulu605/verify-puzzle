@@ -63,7 +63,7 @@ async function init() {
   ]);
   const sel = document.getElementById('nodeSelector');
   sel.innerHTML = nodes.map(n =>
-    `<option value="${n.node_id}">${n.node_name}</option>`
+    `<option value="${n.node_id}">${n.chapter ? '【' + n.chapter + '】' : ''}${n.node_name}</option>`
   ).join('');
   generateStars();
 
