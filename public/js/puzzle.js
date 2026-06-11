@@ -469,13 +469,19 @@ async function showSuccess(result) {
 
   if (result.next_node_id) {
     if (newItems.length) showToast('🎁 获得 ' + newItems.map(i => i.name).join('、') + '，打开背包查看');
-    const overlay = document.createElement('div');
-    overlay.className = 'success-overlay';
-    overlay.innerHTML = `<div class="success-content"><h2>✓ 回答正确!</h2><p>即将进入下一节点...</p></div>`;
-    document.getElementById('app').appendChild(overlay);
-    await delay(800);
-    overlay.remove();
-    loadNode(result.next_node_id);
+    const nextNode = await api('/api/nodes/' + result.next_node_id);
+    if (nextNode && nextNode.chapter && nextNode.chapter !== currentNode.chapter) {
+      await showChapterOverlay(nextNode.chapter);
+      loadNode(result.next_node_id);
+    } else {
+      const overlay = document.createElement('div');
+      overlay.className = 'success-overlay';
+      overlay.innerHTML = `<div class="success-content"><h2>✓ 回答正确!</h2><p>即将进入下一节点...</p></div>`;
+      document.getElementById('app').appendChild(overlay);
+      await delay(800);
+      overlay.remove();
+      loadNode(result.next_node_id);
+    }
     return;
   }
 
@@ -615,6 +621,10 @@ async function proceedAfterFail() {
     showToast('🎁 获得 ' + newItems.map(i => i.name).join('、') + '，打开背包查看');
   }
   if (currentNode.next_node_id) {
+    const nextNode = await api('/api/nodes/' + currentNode.next_node_id);
+    if (nextNode && nextNode.chapter && nextNode.chapter !== currentNode.chapter) {
+      await showChapterOverlay(nextNode.chapter);
+    }
     loadNode(currentNode.next_node_id);
     return;
   }
