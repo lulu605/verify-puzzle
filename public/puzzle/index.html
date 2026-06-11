@@ -98,9 +98,8 @@ body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;width:100vw;height:1
 .backpack-item{background:#141834;border:1px solid #1a2040;border-radius:8px;padding:8px;text-align:center}
 .backpack-item img{width:100%;aspect-ratio:1;object-fit:contain;border-radius:4px;background:rgba(0,0,0,0.3)}
 .backpack-item .item-name{color:#8892b0;font-size:12px;margin-top:4px}
-.node-selector{position:absolute;top:8px;right:10px;z-index:50}
-.node-selector select{padding:6px 12px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#fff;font-size:13px;outline:none;cursor:pointer}
-.node-selector label{color:#8892b0;font-size:12px;margin-right:6px}
+.node-selector{position:absolute;top:8px;right:10px;z-index:50;background:rgba(0,0,0,0.3);border-radius:6px;padding:2px;backdrop-filter:blur(4px)}
+.node-selector select{padding:6px 12px;background:rgba(0,0,0,0.4);border:1px solid rgba(100,255,218,0.2);border-radius:4px;color:#fff;font-size:13px;outline:none;cursor:pointer;min-width:80px}
 
 </style>
 </head>
@@ -126,7 +125,6 @@ body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;width:100vw;height:1
     <button class="cover-btn" onclick="startGame()">开始游戏</button>
   </div>
   <div class="node-selector">
-    <label>跳转:</label>
     <select id="nodeSelector" onchange="loadNode(this.value)"></select>
   </div>
   <div id="dialoguePhase" style="display:flex;flex-direction:column;height:100%">

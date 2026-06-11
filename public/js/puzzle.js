@@ -39,7 +39,6 @@ async function init() {
     `<option value="${n.node_id}">${n.node_name}</option>`
   ).join('');
   generateStars();
-  document.querySelector('.node-selector').style.display = 'none';
 
   const cover = document.querySelector('.cover');
   if (gameCfg.cover_background) {
@@ -461,7 +460,6 @@ async function showSuccess(result) {
       <div class="node-options">${nodeBtns}</div>
     </div>
   `;
-  document.querySelector('.node-selector').style.display = 'block';
   overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
   document.getElementById('app').appendChild(overlay);
 }
