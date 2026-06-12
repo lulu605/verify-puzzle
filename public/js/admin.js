@@ -1,12 +1,18 @@
 let currentId = null;
 let saveTimer = null;
 let previewIdx = 0;
+let adminToken = localStorage.getItem('admin_token');
 
 async function api(path, opts = {}) {
-  const res = await fetch(path, {
-    headers: { 'Content-Type': 'application/json', ...opts.headers },
-    ...opts
-  });
+  const headers = { 'Content-Type': 'application/json', ...opts.headers };
+  if (adminToken) headers['Authorization'] = adminToken;
+  const res = await fetch(path, { headers, ...opts });
+  if (res.status === 401) {
+    localStorage.removeItem('admin_token');
+    adminToken = null;
+    document.getElementById('loginOverlay').style.display = 'flex';
+    throw new Error('未登录');
+  }
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
@@ -381,7 +387,9 @@ async function handleUpload() {
   const formData = new FormData();
   formData.append('image', file);
   try {
-    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+    const headers = {};
+    if (adminToken) headers['Authorization'] = adminToken;
+    const res = await fetch('/api/upload', { method: 'POST', body: formData, headers });
     const data = await res.json();
     if (uploadTarget === 'question') {
       document.getElementById('editQuestionImage').value = data.url;
@@ -664,6 +672,69 @@ async function manualSaveGame() {
   setTimeout(() => status.textContent = '', 3000);
 }
 
+async function doLogin() {
+  const pwd = document.getElementById('loginPwd').value;
+  document.getElementById('loginError').textContent = '';
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    const data = await res.json();
+    if (!res.ok) { document.getElementById('loginError').textContent = data.error || '登录失败'; return; }
+    adminToken = data.token;
+    localStorage.setItem('admin_token', data.token);
+    document.getElementById('loginOverlay').style.display = 'none';
+    loadChapters();
+    loadGameConfig();
+  } catch (e) {
+    document.getElementById('loginError').textContent = '连接失败: ' + e.message;
+  }
+}
+
+async function changePassword() {
+  const oldPwd = document.getElementById('editOldPwd').value;
+  const newPwd = document.getElementById('editNewPwd').value;
+  const status = document.getElementById('pwdStatus');
+  if (!oldPwd || !newPwd) { status.textContent = '请填写完整'; status.style.color = '#ff4757'; return; }
+  if (newPwd.length < 4) { status.textContent = '新密码至少4个字符'; status.style.color = '#ff4757'; return; }
+  status.textContent = '修改中...';
+  status.style.color = '#8892b0';
+  try {
+    const res = await api('/api/admin/password', {
+      method: 'PUT',
+      body: JSON.stringify({ old_password: oldPwd, new_password: newPwd })
+    });
+    if (!res.success) { status.textContent = '修改失败'; status.style.color = '#ff4757'; return; }
+    localStorage.removeItem('admin_token');
+    adminToken = null;
+    status.textContent = '密码已修改，请重新登录';
+    status.style.color = '#64ffda';
+    document.getElementById('editOldPwd').value = '';
+    document.getElementById('editNewPwd').value = '';
+    setTimeout(() => { document.getElementById('loginOverlay').style.display = 'flex'; }, 1500);
+  } catch (e) {
+    status.textContent = '修改失败: ' + e.message;
+    status.style.color = '#ff4757';
+  }
+}
+
+async function initAdmin() {
+  if (!adminToken) { document.getElementById('loginOverlay').style.display = 'flex'; return; }
+  try {
+    const res = await fetch('/api/admin/check-token', {
+      headers: { 'Authorization': adminToken }
+    });
+    if (!res.ok) { localStorage.removeItem('admin_token'); adminToken = null; document.getElementById('loginOverlay').style.display = 'flex'; return; }
+    document.getElementById('loginOverlay').style.display = 'none';
+    loadChapters();
+    loadGameConfig();
+  } catch {
+    document.getElementById('loginOverlay').style.display = 'flex';
+  }
+}
+
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -675,5 +746,4 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 document.getElementById('editBgValue').addEventListener('input', updateBgPreview);
 
-loadChapters();
-loadGameConfig();
+initAdmin();

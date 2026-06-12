@@ -202,8 +202,34 @@
     <button class="btn btn-primary" onclick="manualSaveGame()">💾 保存游戏设置</button>
     <span id="gameSaveStatus" style="font-size:13px;color:#8892b0;margin-left:12px"></span>
   </div>
+  <div class="sidebar-divider" style="margin:20px 0"></div>
+  <h3 style="color:#ffa502;margin-bottom:16px">🔒 修改管理密码</h3>
+  <div class="form-group">
+    <label>旧密码</label>
+    <input id="editOldPwd" type="password" class="input" placeholder="输入旧密码">
+  </div>
+  <div class="form-group">
+    <label>新密码</label>
+    <input id="editNewPwd" type="password" class="input" placeholder="至少4个字符">
+  </div>
+  <div class="form-group">
+    <button class="btn btn-primary" onclick="changePassword()">更改密码</button>
+    <span id="pwdStatus" style="font-size:13px;color:#8892b0;margin-left:12px"></span>
+  </div>
 </div>
   </main>
+</div>
+
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-box">
+    <h2 style="color:#64ffda;margin-bottom:20px;text-align:center;letter-spacing:2px">🔐 管理后台</h2>
+    <div class="form-group">
+      <label>请输入密码</label>
+      <input id="loginPwd" type="password" class="input" placeholder="管理员密码" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()" style="width:100%;justify-content:center">登录</button>
+    <div id="loginError" style="color:#ff4757;font-size:13px;margin-top:10px;text-align:center"></div>
+  </div>
 </div>
 
 <div id="imgUploadModal" class="modal" style="display:none">

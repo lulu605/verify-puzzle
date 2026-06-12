@@ -2,22 +2,39 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'config', 'nodes.json');
+const adminTokens = new Map();
 
 app.use(express.json());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+function auth(req, res, next) {
+  const token = req.headers.authorization;
+  if (!token || !adminTokens.has(token)) return res.status(401).json({ error: '未登录' });
+  req.adminUser = adminTokens.get(token);
+  next();
+}
+
+function getPwd(data) {
+  return (data.gameConfig && data.gameConfig.admin_password) || 'admin123';
+}
+
+function sha256(s) {
+  return crypto.createHash('sha256').update(s).digest('hex');
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, 'uploads')),
@@ -47,7 +64,7 @@ function writeData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
-app.post('/api/upload', upload.single('image'), (req, res) => {
+app.post('/api/upload', auth, upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: '图片上传失败' });
   res.json({ url: `/uploads/${req.file.filename}` });
 });
@@ -62,6 +79,34 @@ app.get('/api/nodes/:id', (req, res) => {
   const node = data.nodes.find(n => n.node_id === req.params.id);
   if (!node) return res.status(404).json({ error: '节点不存在' });
   res.json(node);
+});
+
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  const data = readData();
+  if (password === getPwd(data)) {
+    const token = sha256(Date.now() + password + Math.random());
+    adminTokens.set(token, { loginAt: Date.now() });
+    res.json({ token });
+  } else {
+    res.status(401).json({ error: '密码错误' });
+  }
+});
+
+app.put('/api/admin/password', auth, (req, res) => {
+  const { old_password, new_password } = req.body;
+  if (!old_password || !new_password) return res.status(400).json({ error: '需要旧密码和新密码' });
+  if (new_password.length < 4) return res.status(400).json({ error: '新密码至少4个字符' });
+  const data = readData();
+  if (old_password !== getPwd(data)) return res.status(401).json({ error: '旧密码错误' });
+  data.gameConfig = { ...(data.gameConfig || {}), admin_password: new_password };
+  writeData(data);
+  adminTokens.clear();
+  res.json({ success: true });
+});
+
+app.post('/api/admin/check-token', auth, (req, res) => {
+  res.json({ valid: true });
 });
 
 const DEFAULT_GAME_CONFIG = {
@@ -79,7 +124,7 @@ app.get('/api/game-config', (req, res) => {
   res.json(data.gameConfig || DEFAULT_GAME_CONFIG);
 });
 
-app.put('/api/game-config', (req, res) => {
+app.put('/api/game-config', auth, (req, res) => {
   const data = readData();
   data.gameConfig = { ...DEFAULT_GAME_CONFIG, ...(data.gameConfig || {}), ...req.body };
   writeData(data);
@@ -98,7 +143,7 @@ app.get('/api/chapters', (req, res) => {
   res.json(list);
 });
 
-app.put('/api/chapters/rename', (req, res) => {
+app.put('/api/chapters/rename', auth, (req, res) => {
   const { old_name, new_name } = req.body;
   if (!old_name || !new_name) return res.status(400).json({ error: '需要 old_name 和 new_name' });
   const data = readData();
@@ -109,7 +154,7 @@ app.put('/api/chapters/rename', (req, res) => {
   res.json({ success: true });
 });
 
-app.post('/api/nodes', (req, res) => {
+app.post('/api/nodes', auth, (req, res) => {
   const data = readData();
   const { node_name, background, chapter } = req.body;
   const node = {
@@ -133,7 +178,7 @@ app.post('/api/nodes', (req, res) => {
   res.json(node);
 });
 
-app.put('/api/nodes/:id', (req, res) => {
+app.put('/api/nodes/:id', auth, (req, res) => {
   const data = readData();
   const idx = data.nodes.findIndex(n => n.node_id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: '节点不存在' });
@@ -142,7 +187,7 @@ app.put('/api/nodes/:id', (req, res) => {
   res.json(data.nodes[idx]);
 });
 
-app.delete('/api/nodes/:id', (req, res) => {
+app.delete('/api/nodes/:id', auth, (req, res) => {
   const data = readData();
   const idx = data.nodes.findIndex(n => n.node_id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: '节点不存在' });
@@ -151,7 +196,7 @@ app.delete('/api/nodes/:id', (req, res) => {
   res.json(deleted);
 });
 
-app.put('/api/nodes/:id/dialogues', (req, res) => {
+app.put('/api/nodes/:id/dialogues', auth, (req, res) => {
   const data = readData();
   const node = data.nodes.find(n => n.node_id === req.params.id);
   if (!node) return res.status(404).json({ error: '节点不存在' });
@@ -160,7 +205,7 @@ app.put('/api/nodes/:id/dialogues', (req, res) => {
   res.json(node);
 });
 
-app.put('/api/nodes/:id/puzzle', (req, res) => {
+app.put('/api/nodes/:id/puzzle', auth, (req, res) => {
   const data = readData();
   const node = data.nodes.find(n => n.node_id === req.params.id);
   if (!node) return res.status(404).json({ error: '节点不存在' });
