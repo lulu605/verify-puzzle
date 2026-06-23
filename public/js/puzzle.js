@@ -51,7 +51,7 @@ function stopMusic() {
 
 function enterSite() {
   document.getElementById('entryOverlay').style.display = 'none';
-  const savedCode = sessionStorage.getItem('verified_code');
+  const savedCode = localStorage.getItem('verified_code');
   if (savedCode) {
     if (gameConfig.cover_music) {
       currentChapterMusic = gameConfig.cover_music;
@@ -80,7 +80,7 @@ async function verifyCode() {
     });
     const data = await res.json();
     if (data.valid) {
-      sessionStorage.setItem('verified_code', data.code);
+      localStorage.setItem('verified_code', data.code);
       document.getElementById('codeOverlay').style.display = 'none';
       if (gameConfig.cover_music) {
         currentChapterMusic = gameConfig.cover_music;
@@ -122,7 +122,7 @@ async function init() {
   document.title = gameCfg.game_name || '验证谜题';
   gameConfig = gameCfg;
 
-  if (sessionStorage.getItem('verified_code')) {
+  if (localStorage.getItem('verified_code')) {
     const savedNodeId = localStorage.getItem('puzzle_current_node');
     const savedInventory = localStorage.getItem('puzzle_inventory');
     if (savedInventory) {
@@ -842,14 +842,14 @@ async function submitComment() {
         body: JSON.stringify({ name: name || '匿名', age: age || '', rating: starRating || null, content })
       }),
       (async () => {
-        const savedCode = sessionStorage.getItem('verified_code');
+        const savedCode = localStorage.getItem('verified_code');
         if (savedCode) {
           await fetch('/api/consume-code', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: savedCode })
           });
-          sessionStorage.removeItem('verified_code');
+          localStorage.removeItem('verified_code');
         }
       })()
     ]);
