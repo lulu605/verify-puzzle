@@ -14,6 +14,7 @@
     <button class="btn btn-primary" onclick="addChapter()" style="width:100%;margin-top:8px">+ 新建章节</button>
     <div class="sidebar-divider"></div>
     <div class="sidebar-menu-item" onclick="showGameConfig()">⚙ 游戏设置</div>
+    <div class="sidebar-menu-item" onclick="showComments()">💬 查看留言</div>
   </aside>
   <main class="editor">
     <div id="editorPlaceholder" class="placeholder">← 选择一个节点开始编辑</div>
@@ -199,6 +200,19 @@
     <div style="margin-top:6px;font-size:12px;color:#4a5580">每个章节可设置一首背景音乐（mp3），进入章节时自动播放</div>
   </div>
   <div class="form-group">
+    <label>谢幕字幕（一行一条）</label>
+    <textarea id="editCreditsLines" class="input" rows="5" placeholder="感谢游玩&#10;制作人员&#10;..." oninput="autoSaveGame()" style="font-size:13px"></textarea>
+  </div>
+  <div class="form-group">
+    <label>谢幕音乐（可选）</label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="editCreditsMusic" class="input" placeholder="音乐URL或留空" readonly onclick="uploadCreditsMusic()" style="flex:1">
+      <button class="btn btn-sm" onclick="uploadCreditsMusic()" title="上传音乐">📁</button>
+      <button class="btn btn-sm btn-secondary" onclick="playCreditsMusic()" title="试听">▶</button>
+      <button class="btn btn-sm btn-danger" onclick="clearCreditsMusic()" title="清除">×</button>
+    </div>
+  </div>
+  <div class="form-group">
     <button class="btn btn-primary" onclick="manualSaveGame()">💾 保存游戏设置</button>
     <span id="gameSaveStatus" style="font-size:13px;color:#8892b0;margin-left:12px"></span>
   </div>
@@ -217,6 +231,10 @@
     <span id="pwdStatus" style="font-size:13px;color:#8892b0;margin-left:12px"></span>
   </div>
 </div>
+  <div id="commentsView" class="editor-content" style="display:none">
+    <h3 style="color:#64ffda;margin-bottom:16px">💬 用户留言</h3>
+    <div id="commentsList"></div>
+  </div>
   </main>
 </div>
 

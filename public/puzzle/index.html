@@ -79,6 +79,14 @@ body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;width:100vw;height:1
 .history-overlay .h-entry .h-image{max-width:100%;max-height:200px;border-radius:8px;margin-top:8px;display:block}
 .history-overlay .h-footer{text-align:center;padding:20px}
 .cover{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a0e27 0%,#1a1040 50%,#0a0e27 100%);z-index:10;animation:fadeIn .8s;overflow:hidden}
+.credits-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:#0a0e27;z-index:300;display:none;overflow:hidden}
+.credits-scroll{position:absolute;width:100%;padding:40px 24px;text-align:center;animation:creditsScroll 40s linear forwards;animation-fill-mode:forwards}
+.credits-scroll .c-line{font-size:22px;color:#64ffda;margin-bottom:32px;line-height:1.8;letter-spacing:2px;opacity:0;animation:creditFadeIn .8s forwards}
+.credits-scroll .c-sub{font-size:14px;color:#8892b0;margin-top:-24px;margin-bottom:40px;letter-spacing:1px}
+@keyframes creditsScroll{0%{transform:translateY(100vh)}100%{transform:translateY(-200%)}}
+@keyframes creditFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.comment-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(5,8,20,0.96);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
+.comment-box{width:100%;max-width:400px;background:#141834;border:1px solid #1a2040;border-radius:12px;padding:24px;max-height:90vh;overflow-y:auto}
 
 .cover-stars{position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none}
 .cover-stars span{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 2s infinite alternate}
@@ -179,6 +187,35 @@ body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;width:100vw;height:1
     </div>
   </div>
 
+  <div id="creditsOverlay" class="credits-overlay" style="display:none">
+    <div class="credits-scroll" id="creditsScroll"></div>
+  </div>
+
+  <div id="commentOverlay" class="comment-overlay" style="display:none">
+    <div class="comment-box">
+      <h3 style="color:#64ffda;margin-bottom:16px;text-align:center">💬 评价留言</h3>
+      <div class="form-group">
+        <label style="color:#8892b0;font-size:13px">昵称（可选）</label>
+        <input id="commentName" class="puzzle-input" placeholder="你的昵称" maxlength="20" style="margin-top:4px">
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label style="color:#8892b0;font-size:13px">评分</label>
+        <div id="starRating" style="font-size:28px;margin-top:4px;cursor:pointer;letter-spacing:4px">
+          <span data-star="1" style="color:#4a5580">★</span>
+          <span data-star="2" style="color:#4a5580">★</span>
+          <span data-star="3" style="color:#4a5580">★</span>
+          <span data-star="4" style="color:#4a5580">★</span>
+          <span data-star="5" style="color:#4a5580">★</span>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label style="color:#8892b0;font-size:13px">留言</label>
+        <textarea id="commentContent" class="puzzle-input" placeholder="说说你的感受..." rows="3" style="margin-top:4px;resize:none"></textarea>
+      </div>
+      <button class="puzzle-submit" onclick="submitComment()" style="margin-top:16px">提交留言</button>
+      <div id="commentStatus" style="text-align:center;margin-top:8px;font-size:13px"></div>
+    </div>
+  </div>
 
 </div>
 </div>

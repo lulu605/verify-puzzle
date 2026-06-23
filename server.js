@@ -116,7 +116,8 @@ const DEFAULT_GAME_CONFIG = {
   game_name: '验证谜题小程序',
   cover_background: 'linear-gradient(135deg,#0a0e27 0%,#1a1040 50%,#0a0e27 100%)',
   chapter_music: {},
-  cover_music: null
+  cover_music: null,
+  credits: { lines: ['感谢游玩', '制作人员'], music: null }
 };
 
 app.get('/api/game-config', (req, res) => {
@@ -247,6 +248,42 @@ app.post('/api/verify', (req, res) => {
   } else {
     res.json({ correct: false, message: puzzle.error_hint || '答案不对，再想想！' });
   }
+});
+
+const COMMENTS_FILE = path.join(__dirname, 'config', 'comments.json');
+
+function readComments() {
+  try { return JSON.parse(fs.readFileSync(COMMENTS_FILE, 'utf8')); } catch { return []; }
+}
+
+function writeComments(comments) {
+  fs.writeFileSync(COMMENTS_FILE, JSON.stringify(comments, null, 2), 'utf8');
+}
+
+app.post('/api/comments', (req, res) => {
+  const { name, rating, content } = req.body;
+  if (!content || !content.trim()) return res.status(400).json({ error: '请输入留言内容' });
+  const comments = readComments();
+  comments.push({
+    id: uuidv4().slice(0, 8),
+    name: (name || '匿名').trim(),
+    rating: rating || null,
+    content: content.trim(),
+    time: new Date().toISOString()
+  });
+  writeComments(comments);
+  res.json({ success: true });
+});
+
+app.get('/api/comments', auth, (req, res) => {
+  res.json(readComments());
+});
+
+app.delete('/api/comments/:id', auth, (req, res) => {
+  let comments = readComments();
+  comments = comments.filter(c => c.id !== req.params.id);
+  writeComments(comments);
+  res.json({ success: true });
 });
 
 app.listen(PORT, () => {

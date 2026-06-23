@@ -345,6 +345,24 @@ function uploadDialogueImg(idx) {
   document.getElementById('imgUploadModal').style.display = 'flex';
 }
 
+function uploadCreditsMusic() {
+  uploadTarget = 'creditsMusic';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('imgUploadModal').style.display = 'flex';
+}
+
+function playCreditsMusic() {
+  const val = document.getElementById('editCreditsMusic').value;
+  if (!val) return;
+  const audio = new Audio(val);
+  audio.play().catch(e => alert('播放失败: ' + e.message));
+}
+
+function clearCreditsMusic() {
+  document.getElementById('editCreditsMusic').value = '';
+  autoSaveGame();
+}
+
 function uploadCoverMusic() {
   uploadTarget = 'coverMusic';
   document.getElementById('fileInput').value = '';
@@ -413,6 +431,9 @@ async function handleUpload() {
       autoSave();
     } else if (uploadTarget === 'coverMusic') {
       document.getElementById('editCoverMusic').value = data.url;
+      autoSaveGame();
+    } else if (uploadTarget === 'creditsMusic') {
+      document.getElementById('editCreditsMusic').value = data.url;
       autoSaveGame();
     } else if (uploadTarget === 'music' && uploadMusicChapter) {
       const input = document.querySelector(`.ch-music-input[data-chapter="${uploadMusicChapter}"]`);
@@ -536,6 +557,7 @@ function updatePreview() {
 }
 
 function showGameConfig() {
+  document.getElementById('commentsView').style.display = 'none';
   document.getElementById('editorContent').style.display = 'none';
   document.getElementById('editorPlaceholder').style.display = 'none';
   document.getElementById('gameConfigEditor').style.display = 'block';
@@ -544,6 +566,50 @@ function showGameConfig() {
   document.querySelector('.sidebar-menu-item').classList.add('active');
   document.querySelectorAll('.node-item').forEach(i => i.classList.remove('active'));
   currentId = null;
+}
+
+function showComments() {
+  document.getElementById('editorContent').style.display = 'none';
+  document.getElementById('editorPlaceholder').style.display = 'none';
+  document.getElementById('gameConfigEditor').style.display = 'none';
+  document.getElementById('commentsView').style.display = 'block';
+  document.querySelectorAll('.sidebar-menu-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.sidebar-menu-item')[1].classList.add('active');
+  document.querySelectorAll('.node-item').forEach(i => i.classList.remove('active'));
+  currentId = null;
+  loadComments();
+}
+
+async function loadComments() {
+  const container = document.getElementById('commentsList');
+  try {
+    const comments = await api('/api/comments');
+    if (comments.length === 0) {
+      container.innerHTML = '<div style="color:#4a5580;padding:40px;text-align:center">暂无留言</div>';
+      return;
+    }
+    container.innerHTML = comments.map(c => `
+      <div style="background:#141834;border:1px solid #1a2040;border-radius:8px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="color:#64ffda;font-weight:bold">${escHtml(c.name)}</span>
+          ${c.rating ? '<span style="color:#ffd700">' + '★'.repeat(c.rating) + '☆'.repeat(5-c.rating) + '</span>' : ''}
+        </div>
+        <div style="color:#ccd6f6;font-size:14px;line-height:1.6;margin-bottom:8px">${escHtml(c.content)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="color:#4a5580;font-size:12px">${new Date(c.time).toLocaleString()}</span>
+          <button class="btn btn-xs btn-danger" onclick="deleteComment('${c.id}')">删除</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    container.innerHTML = '<div style="color:#ff4757;padding:20px">加载失败: ' + e.message + '</div>';
+  }
+}
+
+async function deleteComment(id) {
+  if (!confirm('确定删除此留言？')) return;
+  await api('/api/comments/' + id, { method: 'DELETE' });
+  loadComments();
 }
 
 async function loadGameConfig() {
@@ -556,6 +622,8 @@ async function loadGameConfig() {
     document.getElementById('editCoverBg').value = cfg.cover_background || '';
     updateCoverBgPreview();
     document.getElementById('editCoverMusic').value = cfg.cover_music || '';
+    document.getElementById('editCreditsLines').value = (cfg.credits?.lines || []).join('\n');
+    document.getElementById('editCreditsMusic').value = cfg.credits?.music || '';
     renderSubtitleEditor(cfg.chapter_subtitles || {});
     renderMusicEditor(cfg.chapter_music || {});
   } catch (e) { console.error('加载游戏配置失败', e); }
@@ -642,6 +710,8 @@ async function saveGameConfig() {
     if (val) subtitles[ch] = val;
   });
   const music = getMusicFromInputs();
+  const creditsLines = document.getElementById('editCreditsLines').value.split('\n').filter(l => l.trim());
+  const creditsMusic = document.getElementById('editCreditsMusic').value || null;
   await api('/api/game-config', {
     method: 'PUT',
     body: JSON.stringify({
@@ -652,7 +722,8 @@ async function saveGameConfig() {
       cover_background: document.getElementById('editCoverBg').value,
       cover_music: document.getElementById('editCoverMusic').value || null,
       chapter_subtitles: subtitles,
-      chapter_music: music
+      chapter_music: music,
+      credits: creditsLines.length ? { lines: creditsLines, music: creditsMusic } : { lines: [], music: null }
     })
   });
 }

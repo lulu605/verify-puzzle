@@ -494,6 +494,13 @@ async function showSuccess(result) {
     return;
   }
 
+  const credits = gameConfig.credits;
+  if (credits && credits.lines && credits.lines.length > 0) {
+    if (newItems.length) showToast('🎁 获得 ' + newItems.map(i => i.name).join('、') + '，打开背包查看');
+    showCredits(credits);
+    return;
+  }
+
   const allNodes = await api('/api/nodes');
   const overlay = document.createElement('div');
   overlay.className = 'success-overlay';
@@ -635,7 +642,70 @@ async function proceedAfterFail() {
     loadNode(nextAuto.node_id);
     return;
   }
+  const credits = gameConfig.credits;
+  if (credits && credits.lines && credits.lines.length > 0) {
+    showCredits(credits);
+    return;
+  }
   showSuccess({ correct: true, message: '已显示正确答案，选择要前往的节点：', next_node_id: null });
+}
+
+let starRating = 0;
+
+document.getElementById('starRating')?.addEventListener('click', e => {
+  const star = e.target.dataset.star;
+  if (!star) return;
+  starRating = parseInt(star);
+  document.querySelectorAll('#starRating span').forEach((s, i) => {
+    s.style.color = i < starRating ? '#ffd700' : '#4a5580';
+  });
+});
+
+function showCredits(credits) {
+  stopMusic();
+  if (credits.music) playMusic(credits.music);
+  const container = document.getElementById('creditsScroll');
+  container.innerHTML = credits.lines.map(line =>
+    `<div class="c-line">${escHtml(line)}</div>`
+  ).join('');
+  document.getElementById('creditsOverlay').style.display = 'block';
+  setTimeout(() => {
+    document.getElementById('creditsOverlay').style.display = 'none';
+    if (credits.music) stopMusic();
+    showCommentForm();
+  }, 40000);
+}
+
+function showCommentForm() {
+  starRating = 0;
+  document.querySelectorAll('#starRating span').forEach(s => s.style.color = '#4a5580');
+  document.getElementById('commentName').value = '';
+  document.getElementById('commentContent').value = '';
+  document.getElementById('commentStatus').textContent = '';
+  document.getElementById('commentOverlay').style.display = 'flex';
+}
+
+async function submitComment() {
+  const name = document.getElementById('commentName').value.trim();
+  const content = document.getElementById('commentContent').value.trim();
+  const status = document.getElementById('commentStatus');
+  if (!content) { status.textContent = '请输入留言内容'; status.style.color = '#ff4757'; return; }
+  status.textContent = '提交中...';
+  status.style.color = '#8892b0';
+  try {
+    await fetch('/api/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name || '匿名', rating: starRating || null, content })
+    });
+    status.textContent = '✓ 感谢你的评价！';
+    status.style.color = '#64ffda';
+    document.getElementById('commentName').value = '';
+    document.getElementById('commentContent').value = '';
+  } catch (e) {
+    status.textContent = '提交失败: ' + e.message;
+    status.style.color = '#ff4757';
+  }
 }
 
 function showToast(msg) {
