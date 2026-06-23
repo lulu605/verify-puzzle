@@ -269,10 +269,9 @@ async function playDialogues() {
     showPuzzle();
     return;
   }
-    charArea.style.display = '';
-    speakerLabel.style.display = '';
-    box.style.cssText = '';
-  }
+  charArea.style.display = '';
+  speakerLabel.style.display = '';
+  box.style.cssText = '';
 
   for (let i = currentDialogueIdx; i < dialogues.length; i++) {
     if (isPaused) return;
