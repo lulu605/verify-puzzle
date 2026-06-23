@@ -140,8 +140,11 @@ async function selectNode(id) {
   updateBgPreview();
   document.getElementById('editDialogueBg').value = node.dialogue_bg || '';
   document.getElementById('editDisplayMode').value = node.display_mode || 'dialogue';
+  document.getElementById('editTextContent').value = node.text_content || '';
+  document.getElementById('editTextMusic').value = node.text_music || '';
   document.getElementById('editShowCreditsAfter').checked = !!node.show_credits_after;
-  document.getElementById('creditsJumpGroup').style.display = (node.display_mode || 'dialogue') === 'text' ? 'block' : 'none';
+  const isText = (node.display_mode || 'dialogue') === 'text';
+  document.getElementById('textModeGroup').style.display = isText ? 'block' : 'none';
 
 
   const nextSelect = document.getElementById('editNextNode');
@@ -274,6 +277,8 @@ async function autoSaveNow() {
       background: bgValue || null,
       dialogue_bg: document.getElementById('editDialogueBg').value || null,
       display_mode: document.getElementById('editDisplayMode').value,
+      text_content: document.getElementById('editTextContent').value,
+      text_music: document.getElementById('editTextMusic').value || null,
       show_credits_after: document.getElementById('editShowCreditsAfter').checked,
       next_node_id: document.getElementById('editNextNode').value || null
     })
@@ -348,6 +353,24 @@ function uploadDialogueImg(idx) {
   uploadDialogueIdx = idx;
   document.getElementById('fileInput').value = '';
   document.getElementById('imgUploadModal').style.display = 'flex';
+}
+
+function uploadTextMusic() {
+  uploadTarget = 'textMusic';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('imgUploadModal').style.display = 'flex';
+}
+
+function playTextMusic() {
+  const val = document.getElementById('editTextMusic').value;
+  if (!val) return;
+  const audio = new Audio(val);
+  audio.play().catch(e => alert('播放失败: ' + e.message));
+}
+
+function clearTextMusic() {
+  document.getElementById('editTextMusic').value = '';
+  autoSave();
 }
 
 function uploadCreditsMusic() {
@@ -437,6 +460,9 @@ async function handleUpload() {
     } else if (uploadTarget === 'coverMusic') {
       document.getElementById('editCoverMusic').value = data.url;
       autoSaveGame();
+    } else if (uploadTarget === 'textMusic') {
+      document.getElementById('editTextMusic').value = data.url;
+      autoSave();
     } else if (uploadTarget === 'creditsMusic') {
       document.getElementById('editCreditsMusic').value = data.url;
       autoSaveGame();
@@ -822,7 +848,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 document.getElementById('editBgValue').addEventListener('input', updateBgPreview);
 document.getElementById('editDisplayMode').addEventListener('change', function() {
-  document.getElementById('creditsJumpGroup').style.display = this.value === 'text' ? 'block' : 'none';
+  document.getElementById('textModeGroup').style.display = this.value === 'text' ? 'block' : 'none';
 });
 
 initAdmin();

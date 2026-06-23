@@ -67,12 +67,27 @@
             <option value="text">文本展示（纯文字逐句显示）</option>
           </select>
         </div>
-        <div class="form-group" id="creditsJumpGroup" style="display:none">
-          <label>文本展示结束后</label>
-          <label style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;font-size:14px;color:#ccd6f6">
-            <input type="checkbox" id="editShowCreditsAfter" onchange="autoSave()">
-            跳转到谢幕字幕
-          </label>
+        <div id="textModeGroup" style="display:none">
+          <div class="form-group">
+            <label>文本内容（一行一句）</label>
+            <textarea id="editTextContent" class="input" rows="6" placeholder="第一句&#10;第二句&#10;第三句&#10;..." oninput="autoSave()" style="font-size:13px"></textarea>
+          </div>
+          <div class="form-group">
+            <label>背景音乐（可选）</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="editTextMusic" class="input" placeholder="音乐URL或留空" readonly onclick="uploadTextMusic()" style="flex:1">
+              <button class="btn btn-sm" onclick="uploadTextMusic()" title="上传音乐">📁</button>
+              <button class="btn btn-sm btn-secondary" onclick="playTextMusic()" title="试听">▶</button>
+              <button class="btn btn-sm btn-danger" onclick="clearTextMusic()" title="清除">×</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>文本展示结束后</label>
+            <label style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;font-size:14px;color:#ccd6f6">
+              <input type="checkbox" id="editShowCreditsAfter" onchange="autoSave()">
+              跳转到谢幕字幕
+            </label>
+          </div>
         </div>
           <div class="form-group">
           <label>跳转节点（验证通过后）</label>

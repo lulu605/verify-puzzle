@@ -164,6 +164,8 @@ app.post('/api/nodes', auth, (req, res) => {
     node_name: node_name || '未命名节点',
     background: background || { type: 'color', value: '#0a0e27' },
     display_mode: 'dialogue',
+    text_content: '',
+    text_music: null,
     show_credits_after: false,
     dialogues: [],
     puzzle: {

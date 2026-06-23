@@ -255,12 +255,21 @@ async function playDialogues() {
   document.getElementById('dialogueContainer').innerHTML = '';
   document.getElementById('goPuzzleBtn').style.display = 'none';
 
+  const isTextMode = currentNode.display_mode === 'text';
+
+  if (isTextMode) {
+    if (currentNode.text_music) playMusic(currentNode.text_music);
+  }
+
   if (!dialogues || dialogues.length === 0) {
+    if (isTextMode && currentNode.text_content) {
+      const lines = currentNode.text_content.split('\n').filter(l => l.trim());
+      playTextLines(lines);
+      return;
+    }
     showPuzzle();
     return;
   }
-
-  const isTextMode = currentNode.display_mode === 'text';
   const box = document.getElementById('dialogueBox');
   const charArea = document.querySelector('.character-area');
   const speakerLabel = document.getElementById('speakerLabel');
@@ -341,6 +350,42 @@ async function playDialogues() {
   document.getElementById('historyBtn').style.display = 'block';
 
   box.scrollTop = box.scrollHeight;
+}
+
+async function playTextLines(lines) {
+  const box = document.getElementById('dialogueBox');
+  document.querySelector('.character-area').style.display = 'none';
+  document.getElementById('speakerLabel').style.display = 'none';
+  box.style.cssText = 'width:100%;height:100%;min-height:0;max-height:none;display:flex;align-items:center;justify-content:center;background:transparent;backdrop-filter:none;border:none';
+  document.getElementById('progressDots').innerHTML = '';
+  document.getElementById('dialogueContainer').innerHTML = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    currentDialogueIdx = i;
+    document.getElementById('dialogueContainer').innerHTML = '';
+    const entry = document.createElement('div');
+    entry.className = 'dialogue-entry';
+    entry.style.textAlign = 'center';
+    entry.innerHTML = `<div class="dialogue-text" id="typingTarget" style="font-size:22px;color:#64ffda;line-height:2"></div>`;
+    document.getElementById('dialogueContainer').appendChild(entry);
+    document.getElementById('clickHint').style.display = 'none';
+    await typeText(entry.querySelector('.dialogue-text'), lines[i], 20);
+    if (i < lines.length - 1) {
+      document.getElementById('clickHint').style.display = 'block';
+      await waitForClick(box);
+    }
+  }
+
+  document.getElementById('clickHint').style.display = 'none';
+  if (currentNode.show_credits_after) {
+    const credits = gameConfig.credits;
+    if (credits && credits.lines && credits.lines.length > 0) {
+      showCredits(credits);
+      return;
+    }
+  }
+  document.getElementById('goPuzzleBtn').style.display = 'block';
+  document.getElementById('historyBtn').style.display = 'block';
 }
 
 function waitForClick(el) {
