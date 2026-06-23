@@ -255,11 +255,11 @@ async function playDialogues() {
   const dialogues = currentNode.dialogues;
   document.getElementById('dialogueContainer').innerHTML = '';
   document.getElementById('goPuzzleBtn').style.display = 'none';
-  if (isTextMode) {
-    if (currentNode.text_music) playMusic(currentNode.text_music);
-    const lines = (currentNode.text_content || '').split('\n').filter(l => l.trim());
-    playTextLines(lines);
-    return;
+    if (isTextMode) {
+      if (currentNode.text_music) playMusic(currentNode.text_music);
+      const lines = (currentNode.text_content || '').split('\n').filter(l => l.trim());
+      await playTextLines(lines);
+      return;
   }
 
   const box = document.getElementById('dialogueBox');
