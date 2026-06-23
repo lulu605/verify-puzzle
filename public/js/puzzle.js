@@ -323,7 +323,7 @@ async function playDialogues() {
 
     if (i < dialogues.length - 1) {
       document.getElementById('clickHint').style.display = 'block';
-      await waitForClick(document.getElementById('app'));
+      await waitForClick(document.getElementById('dialogueBox'));
     }
   }
 
