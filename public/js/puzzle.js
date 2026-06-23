@@ -251,10 +251,11 @@ function renderProgress(count) {
 }
 
 async function playDialogues() {
+  const isTextMode = currentNode.display_mode === 'text';
   const dialogues = currentNode.dialogues;
   document.getElementById('dialogueContainer').innerHTML = '';
   document.getElementById('goPuzzleBtn').style.display = 'none';
-  if (currentNode.display_mode === 'text') {
+  if (isTextMode) {
     if (currentNode.text_music) playMusic(currentNode.text_music);
     const lines = (currentNode.text_content || '').split('\n').filter(l => l.trim());
     playTextLines(lines);
