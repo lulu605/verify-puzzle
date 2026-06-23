@@ -347,7 +347,24 @@ app.post('/api/verify-code', (req, res) => {
   const entry = codes.find(c => c.code === code.trim().toUpperCase());
   if (!entry) return res.json({ valid: false, error: '验证码无效' });
   if (entry.used) return res.json({ valid: false, error: '此验证码已被使用' });
-  res.json({ valid: true, code: entry.code });
+  res.json({
+    valid: true,
+    code: entry.code,
+    saved_node: entry.saved_node || null,
+    saved_inventory: entry.saved_inventory || null
+  });
+});
+
+app.post('/api/save-progress', (req, res) => {
+  const { code, node_id, inventory } = req.body;
+  if (!code || !node_id) return res.status(400).json({ error: '参数错误' });
+  const codes = readCodes();
+  const entry = codes.find(c => c.code === code.trim().toUpperCase());
+  if (!entry) return res.status(400).json({ error: '验证码不存在' });
+  entry.saved_node = node_id;
+  entry.saved_inventory = inventory || null;
+  writeCodes(codes);
+  res.json({ success: true });
 });
 
 app.post('/api/consume-code', (req, res) => {
@@ -359,6 +376,8 @@ app.post('/api/consume-code', (req, res) => {
   if (entry.used) return res.json({ success: true });
   entry.used = true;
   entry.used_at = new Date().toISOString();
+  entry.saved_node = null;
+  entry.saved_inventory = null;
   writeCodes(codes);
   res.json({ success: true });
 });
