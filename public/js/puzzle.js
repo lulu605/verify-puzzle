@@ -346,27 +346,32 @@ async function playTextLines(lines) {
   const box = document.getElementById('dialogueBox');
   document.querySelector('.character-area').style.display = 'none';
   document.getElementById('speakerLabel').style.display = 'none';
-  box.style.cssText = 'width:100%;height:100%;min-height:0;max-height:none;display:flex;align-items:center;justify-content:center;background:transparent;backdrop-filter:none;border:none';
+  box.style.cssText = 'width:100%;min-height:0;max-height:none;display:flex;align-items:center;justify-content:center;background:transparent;backdrop-filter:none;border:none';
   document.getElementById('progressDots').innerHTML = '';
-  document.getElementById('dialogueContainer').innerHTML = '';
+  document.getElementById('clickHint').style.display = 'none';
 
   for (let i = 0; i < lines.length; i++) {
     currentDialogueIdx = i;
     document.getElementById('dialogueContainer').innerHTML = '';
     const entry = document.createElement('div');
-    entry.className = 'dialogue-entry';
     entry.style.textAlign = 'center';
-    entry.innerHTML = `<div class="dialogue-text" id="typingTarget" style="font-size:22px;color:#64ffda;line-height:2"></div>`;
+    const textDiv = document.createElement('div');
+    textDiv.className = 'dialogue-text';
+    textDiv.style.cssText = 'font-size:22px;color:#64ffda;line-height:2';
+    textDiv.id = 'typingTarget';
+    const hintDiv = document.createElement('div');
+    hintDiv.style.cssText = 'margin-top:16px;color:#64ffda;font-size:13px;animation:pulse 1.5s infinite;opacity:0.6';
+    hintDiv.textContent = '点击继续 ▸';
+    entry.appendChild(textDiv);
+    entry.appendChild(hintDiv);
     document.getElementById('dialogueContainer').appendChild(entry);
-    document.getElementById('clickHint').style.display = 'none';
-    await typeText(entry.querySelector('.dialogue-text'), lines[i], 20);
+    await typeText(textDiv, lines[i], 20);
     if (i < lines.length - 1) {
-      document.getElementById('clickHint').style.display = 'block';
       await waitForClick(box);
+      hintDiv.style.display = 'none';
     }
   }
 
-  document.getElementById('clickHint').style.display = 'none';
   if (currentNode.show_credits_after) {
     const credits = gameConfig.credits;
     if (credits && credits.lines && credits.lines.length > 0) {
