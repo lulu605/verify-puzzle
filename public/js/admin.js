@@ -139,6 +139,9 @@ async function selectNode(id) {
   document.getElementById('editBgValue').value = bgVal;
   updateBgPreview();
   document.getElementById('editDialogueBg').value = node.dialogue_bg || '';
+  document.getElementById('editDisplayMode').value = node.display_mode || 'dialogue';
+  document.getElementById('editShowCreditsAfter').checked = !!node.show_credits_after;
+  document.getElementById('creditsJumpGroup').style.display = (node.display_mode || 'dialogue') === 'text' ? 'block' : 'none';
 
 
   const nextSelect = document.getElementById('editNextNode');
@@ -270,6 +273,8 @@ async function autoSaveNow() {
       chapter: document.getElementById('editChapter').value,
       background: bgValue || null,
       dialogue_bg: document.getElementById('editDialogueBg').value || null,
+      display_mode: document.getElementById('editDisplayMode').value,
+      show_credits_after: document.getElementById('editShowCreditsAfter').checked,
       next_node_id: document.getElementById('editNextNode').value || null
     })
   });
@@ -816,5 +821,8 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 document.getElementById('editBgValue').addEventListener('input', updateBgPreview);
+document.getElementById('editDisplayMode').addEventListener('change', function() {
+  document.getElementById('creditsJumpGroup').style.display = this.value === 'text' ? 'block' : 'none';
+});
 
 initAdmin();

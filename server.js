@@ -163,6 +163,8 @@ app.post('/api/nodes', auth, (req, res) => {
     chapter: chapter || '默认章节',
     node_name: node_name || '未命名节点',
     background: background || { type: 'color', value: '#0a0e27' },
+    display_mode: 'dialogue',
+    show_credits_after: false,
     dialogues: [],
     puzzle: {
       question_text: '',

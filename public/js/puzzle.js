@@ -158,6 +158,10 @@ async function loadNode(nodeId) {
   closeHistory();
   applyBackground(currentNode.background);
   applyDialogueBg(currentNode.dialogue_bg);
+  const box = document.getElementById('dialogueBox');
+  box.style.cssText = '';
+  document.querySelector('.character-area').style.display = '';
+  document.getElementById('speakerLabel').style.display = '';
   document.getElementById('dialoguePhase').style.display = 'flex';
   document.getElementById('puzzleArea').style.display = 'none';
   document.getElementById('puzzleError').textContent = '';
@@ -256,7 +260,20 @@ async function playDialogues() {
     return;
   }
 
+  const isTextMode = currentNode.display_mode === 'text';
   const box = document.getElementById('dialogueBox');
+  const charArea = document.querySelector('.character-area');
+  const speakerLabel = document.getElementById('speakerLabel');
+
+  if (isTextMode) {
+    charArea.style.display = 'none';
+    speakerLabel.style.display = 'none';
+    box.style.cssText = 'width:100%;height:100%;min-height:0;max-height:none;display:flex;align-items:center;justify-content:center;background:transparent;backdrop-filter:none;border:none';
+  } else {
+    charArea.style.display = '';
+    speakerLabel.style.display = '';
+    box.style.cssText = '';
+  }
 
   for (let i = currentDialogueIdx; i < dialogues.length; i++) {
     if (isPaused) return;
@@ -269,25 +286,32 @@ async function playDialogues() {
     const prefix = speaker + '：';
     if (text.startsWith(prefix)) text = text.slice(prefix.length);
 
-    document.getElementById('speakerLabel').textContent = speaker;
-    const charArt = document.getElementById('charArt');
-    const nameTag = document.getElementById('charNameTag');
-    if (avatar) {
-      charArt.src = avatar;
-      charArt.style.display = 'block';
-      nameTag.textContent = speaker;
-      nameTag.style.display = 'block';
-    } else {
-      charArt.style.display = 'none';
-      nameTag.style.display = 'none';
+    if (!isTextMode) {
+      document.getElementById('speakerLabel').textContent = speaker;
+      const charArt = document.getElementById('charArt');
+      const nameTag = document.getElementById('charNameTag');
+      if (avatar) {
+        charArt.src = avatar;
+        charArt.style.display = 'block';
+        nameTag.textContent = speaker;
+        nameTag.style.display = 'block';
+      } else {
+        charArt.style.display = 'none';
+        nameTag.style.display = 'none';
+      }
     }
 
     document.getElementById('dialogueContainer').innerHTML = '';
     const entry = document.createElement('div');
     entry.className = 'dialogue-entry';
     entry.innerHTML = `<div class="dialogue-text" id="typingTarget"></div>`;
+    if (isTextMode) {
+      entry.style.textAlign = 'center';
+      entry.querySelector('.dialogue-text').style.fontSize = '22px';
+      entry.querySelector('.dialogue-text').style.color = '#64ffda';
+      entry.querySelector('.dialogue-text').style.lineHeight = '2';
+    }
     document.getElementById('dialogueContainer').appendChild(entry);
-    box.scrollTop = box.scrollHeight;
 
     document.getElementById('clickHint').style.display = 'none';
 
@@ -304,6 +328,15 @@ async function playDialogues() {
   }
 
   document.getElementById('clickHint').style.display = 'none';
+
+  if (isTextMode && currentNode.show_credits_after) {
+    const credits = gameConfig.credits;
+    if (credits && credits.lines && credits.lines.length > 0) {
+      showCredits(credits);
+      return;
+    }
+  }
+
   document.getElementById('goPuzzleBtn').style.display = 'block';
   document.getElementById('historyBtn').style.display = 'block';
 
