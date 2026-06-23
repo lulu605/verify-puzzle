@@ -51,9 +51,41 @@ function stopMusic() {
 
 function enterSite() {
   document.getElementById('entryOverlay').style.display = 'none';
-  if (gameConfig.cover_music) {
-    currentChapterMusic = gameConfig.cover_music;
-    playMusic(gameConfig.cover_music);
+  document.getElementById('codeOverlay').style.display = 'flex';
+  document.getElementById('codeInput').value = '';
+  document.getElementById('codeError').textContent = '';
+  document.getElementById('codeInput').focus();
+}
+
+async function verifyCode() {
+  const input = document.getElementById('codeInput');
+  const code = input.value.trim().toUpperCase();
+  const errorEl = document.getElementById('codeError');
+  if (!code) { errorEl.textContent = '请输入验证码'; return; }
+  errorEl.textContent = '验证中...';
+  errorEl.style.color = '#8892b0';
+  try {
+    const res = await fetch('/api/verify-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    if (data.valid) {
+      document.getElementById('codeOverlay').style.display = 'none';
+      if (gameConfig.cover_music) {
+        currentChapterMusic = gameConfig.cover_music;
+        playMusic(gameConfig.cover_music);
+      }
+    } else {
+      errorEl.textContent = data.error || '验证码无效';
+      errorEl.style.color = '#ff4757';
+      input.value = '';
+      input.focus();
+    }
+  } catch (e) {
+    errorEl.textContent = '验证失败: ' + e.message;
+    errorEl.style.color = '#ff4757';
   }
 }
 

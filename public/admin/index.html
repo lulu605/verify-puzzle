@@ -14,6 +14,7 @@
     <button class="btn btn-primary" onclick="addChapter()" style="width:100%;margin-top:8px">+ 新建章节</button>
     <div class="sidebar-divider"></div>
     <div class="sidebar-menu-item" onclick="showGameConfig()">⚙ 游戏设置</div>
+    <div class="sidebar-menu-item" onclick="showCodes()">🔑 验证码管理</div>
     <div class="sidebar-menu-item" onclick="showComments()">💬 查看留言</div>
   </aside>
   <main class="editor">
@@ -260,6 +261,21 @@
     <span id="pwdStatus" style="font-size:13px;color:#8892b0;margin-left:12px"></span>
   </div>
 </div>
+  <div id="codesView" class="editor-content" style="display:none">
+    <h3 style="color:#64ffda;margin-bottom:16px">🔑 验证码管理</h3>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+      <button class="btn btn-primary" onclick="generateCodes()">生成新验证码</button>
+      <select id="codeCount" style="padding:6px 10px;background:#141834;border:1px solid #1a2040;border-radius:6px;color:#fff;font-size:13px;outline:none">
+        <option value="1">1个</option>
+        <option value="5">5个</option>
+        <option value="10">10个</option>
+        <option value="20">20个</option>
+        <option value="50">50个</option>
+      </select>
+      <span id="codeStatus" style="font-size:13px;color:#8892b0;margin-left:8px"></span>
+    </div>
+    <div id="codesList"></div>
+  </div>
   <div id="commentsView" class="editor-content" style="display:none">
     <h3 style="color:#64ffda;margin-bottom:16px">💬 用户留言</h3>
     <div id="commentsList"></div>

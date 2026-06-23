@@ -291,6 +291,68 @@ app.delete('/api/comments/:id', auth, (req, res) => {
   res.json({ success: true });
 });
 
+const CODES_FILE = path.join(__dirname, 'config', 'codes.json');
+
+function readCodes() {
+  try { return JSON.parse(fs.readFileSync(CODES_FILE, 'utf8')); } catch { return []; }
+}
+
+function writeCodes(codes) {
+  fs.writeFileSync(CODES_FILE, JSON.stringify(codes, null, 2), 'utf8');
+}
+
+function generateCode(length) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+app.post('/api/admin/codes', auth, (req, res) => {
+  const count = Math.min(Math.max(parseInt(req.body.count) || 1, 1), 50);
+  const codes = readCodes();
+  const newCodes = [];
+  for (let i = 0; i < count; i++) {
+    const code = generateCode(8);
+    codes.push({
+      id: uuidv4().slice(0, 8),
+      code,
+      created_at: new Date().toISOString(),
+      used: false,
+      used_at: null
+    });
+    newCodes.push(code);
+  }
+  writeCodes(codes);
+  res.json({ success: true, codes: newCodes });
+});
+
+app.get('/api/admin/codes', auth, (req, res) => {
+  res.json(readCodes());
+});
+
+app.delete('/api/admin/codes/:id', auth, (req, res) => {
+  let codes = readCodes();
+  codes = codes.filter(c => c.id !== req.params.id);
+  writeCodes(codes);
+  res.json({ success: true });
+});
+
+app.post('/api/verify-code', (req, res) => {
+  const { code } = req.body;
+  if (!code || !code.trim()) return res.status(400).json({ valid: false, error: '请输入验证码' });
+  const codes = readCodes();
+  const entry = codes.find(c => c.code === code.trim().toUpperCase());
+  if (!entry) return res.json({ valid: false, error: '验证码无效' });
+  if (entry.used) return res.json({ valid: false, error: '此验证码已被使用' });
+  entry.used = true;
+  entry.used_at = new Date().toISOString();
+  writeCodes(codes);
+  res.json({ valid: true });
+});
+
 app.listen(PORT, () => {
   console.log(`验证谜题小程序 服务已启动: http://localhost:${PORT}`);
   console.log(`管理后台: http://localhost:${PORT}/admin/`);

@@ -589,6 +589,7 @@ function updatePreview() {
 
 function showGameConfig() {
   document.getElementById('commentsView').style.display = 'none';
+  document.getElementById('codesView').style.display = 'none';
   document.getElementById('editorContent').style.display = 'none';
   document.getElementById('editorPlaceholder').style.display = 'none';
   document.getElementById('gameConfigEditor').style.display = 'block';
@@ -603,12 +604,81 @@ function showComments() {
   document.getElementById('editorContent').style.display = 'none';
   document.getElementById('editorPlaceholder').style.display = 'none';
   document.getElementById('gameConfigEditor').style.display = 'none';
+  document.getElementById('codesView').style.display = 'none';
   document.getElementById('commentsView').style.display = 'block';
+  document.querySelectorAll('.sidebar-menu-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.sidebar-menu-item')[2].classList.add('active');
+  document.querySelectorAll('.node-item').forEach(i => i.classList.remove('active'));
+  currentId = null;
+  loadComments();
+}
+
+function showCodes() {
+  document.getElementById('editorContent').style.display = 'none';
+  document.getElementById('editorPlaceholder').style.display = 'none';
+  document.getElementById('gameConfigEditor').style.display = 'none';
+  document.getElementById('commentsView').style.display = 'none';
+  document.getElementById('codesView').style.display = 'block';
   document.querySelectorAll('.sidebar-menu-item').forEach(i => i.classList.remove('active'));
   document.querySelectorAll('.sidebar-menu-item')[1].classList.add('active');
   document.querySelectorAll('.node-item').forEach(i => i.classList.remove('active'));
   currentId = null;
-  loadComments();
+  loadCodes();
+}
+
+async function loadCodes() {
+  const container = document.getElementById('codesList');
+  try {
+    const codes = await api('/api/admin/codes');
+    if (codes.length === 0) {
+      container.innerHTML = '<div style="color:#4a5580;padding:40px;text-align:center">暂无验证码</div>';
+      return;
+    }
+    container.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:14px">' +
+      '<tr style="color:#8892b0;border-bottom:1px solid #1a2040">' +
+        '<th style="padding:8px 12px;text-align:left">验证码</th>' +
+        '<th style="padding:8px 12px;text-align:left">状态</th>' +
+        '<th style="padding:8px 12px;text-align:left">生成时间</th>' +
+        '<th style="padding:8px 12px;text-align:left">使用时间</th>' +
+        '<th style="padding:8px 12px;text-align:right">操作</th>' +
+      '</tr>' +
+      codes.map(c => '<tr style="border-bottom:1px solid #141834">' +
+        '<td style="padding:8px 12px;color:#64ffda;font-family:monospace;font-size:15px;letter-spacing:2px">' + escHtml(c.code) + '</td>' +
+        '<td style="padding:8px 12px">' + (c.used ? '<span style="color:#ff4757">已使用</span>' : '<span style="color:#64ffda">未使用</span>') + '</td>' +
+        '<td style="padding:8px 12px;color:#8892b0;font-size:12px">' + new Date(c.created_at).toLocaleString() + '</td>' +
+        '<td style="padding:8px 12px;color:#8892b0;font-size:12px">' + (c.used_at ? new Date(c.used_at).toLocaleString() : '-') + '</td>' +
+        '<td style="padding:8px 12px;text-align:right"><button class="btn btn-xs btn-danger" onclick="deleteCode(\'' + c.id + '\')">删除</button></td>' +
+      '</tr>').join('') +
+      '</table>';
+    document.getElementById('codeStatus').textContent = '共 ' + codes.length + ' 个验证码，' + codes.filter(c => c.used).length + ' 个已使用';
+  } catch (e) {
+    container.innerHTML = '<div style="color:#ff4757;padding:20px">加载失败: ' + e.message + '</div>';
+  }
+}
+
+async function generateCodes() {
+  const count = parseInt(document.getElementById('codeCount').value);
+  document.getElementById('codeStatus').textContent = '生成中...';
+  try {
+    const result = await api('/api/admin/codes', {
+      method: 'POST',
+      body: JSON.stringify({ count })
+    });
+    document.getElementById('codeStatus').textContent = '✅ 已生成 ' + result.codes.length + ' 个验证码';
+    loadCodes();
+  } catch (e) {
+    document.getElementById('codeStatus').textContent = '生成失败: ' + e.message;
+  }
+}
+
+async function deleteCode(id) {
+  if (!confirm('确定删除此验证码？')) return;
+  try {
+    await api('/api/admin/codes/' + id, { method: 'DELETE' });
+    loadCodes();
+  } catch (e) {
+    alert('删除失败: ' + e.message);
+  }
 }
 
 async function loadComments() {
