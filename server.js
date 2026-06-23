@@ -347,10 +347,20 @@ app.post('/api/verify-code', (req, res) => {
   const entry = codes.find(c => c.code === code.trim().toUpperCase());
   if (!entry) return res.json({ valid: false, error: '验证码无效' });
   if (entry.used) return res.json({ valid: false, error: '此验证码已被使用' });
+  res.json({ valid: true, code: entry.code });
+});
+
+app.post('/api/consume-code', (req, res) => {
+  const { code } = req.body;
+  if (!code || !code.trim()) return res.status(400).json({ error: '参数错误' });
+  const codes = readCodes();
+  const entry = codes.find(c => c.code === code.trim().toUpperCase());
+  if (!entry) return res.status(400).json({ error: '验证码不存在' });
+  if (entry.used) return res.json({ success: true });
   entry.used = true;
   entry.used_at = new Date().toISOString();
   writeCodes(codes);
-  res.json({ valid: true });
+  res.json({ success: true });
 });
 
 app.listen(PORT, () => {

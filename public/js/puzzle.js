@@ -51,6 +51,14 @@ function stopMusic() {
 
 function enterSite() {
   document.getElementById('entryOverlay').style.display = 'none';
+  const savedCode = sessionStorage.getItem('verified_code');
+  if (savedCode) {
+    if (gameConfig.cover_music) {
+      currentChapterMusic = gameConfig.cover_music;
+      playMusic(gameConfig.cover_music);
+    }
+    return;
+  }
   document.getElementById('codeOverlay').style.display = 'flex';
   document.getElementById('codeInput').value = '';
   document.getElementById('codeError').textContent = '';
@@ -72,6 +80,7 @@ async function verifyCode() {
     });
     const data = await res.json();
     if (data.valid) {
+      sessionStorage.setItem('verified_code', data.code);
       document.getElementById('codeOverlay').style.display = 'none';
       if (gameConfig.cover_music) {
         currentChapterMusic = gameConfig.cover_music;
@@ -824,11 +833,25 @@ async function submitComment() {
   status.textContent = '提交中...';
   status.style.color = '#8892b0';
   try {
-    await fetch('/api/comments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name || '匿名', age: age || '', rating: starRating || null, content })
-    });
+    const [commentRes] = await Promise.all([
+      fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name || '匿名', age: age || '', rating: starRating || null, content })
+      }),
+      (async () => {
+        const savedCode = sessionStorage.getItem('verified_code');
+        if (savedCode) {
+          await fetch('/api/consume-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: savedCode })
+          });
+          sessionStorage.removeItem('verified_code');
+        }
+      })()
+    ]);
+    if (!commentRes.ok) throw new Error(await commentRes.text());
     status.textContent = '✓ 感谢你的评价！';
     status.style.color = '#64ffda';
     document.getElementById('commentName').value = '';
