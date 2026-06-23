@@ -254,31 +254,21 @@ async function playDialogues() {
   const dialogues = currentNode.dialogues;
   document.getElementById('dialogueContainer').innerHTML = '';
   document.getElementById('goPuzzleBtn').style.display = 'none';
-
-  const isTextMode = currentNode.display_mode === 'text';
-
-  if (isTextMode) {
+  if (currentNode.display_mode === 'text') {
     if (currentNode.text_music) playMusic(currentNode.text_music);
-  }
-
-  if (!dialogues || dialogues.length === 0) {
-    if (isTextMode && currentNode.text_content) {
-      const lines = currentNode.text_content.split('\n').filter(l => l.trim());
-      playTextLines(lines);
-      return;
-    }
-    showPuzzle();
+    const lines = (currentNode.text_content || '').split('\n').filter(l => l.trim());
+    playTextLines(lines);
     return;
   }
+
   const box = document.getElementById('dialogueBox');
   const charArea = document.querySelector('.character-area');
   const speakerLabel = document.getElementById('speakerLabel');
 
-  if (isTextMode) {
-    charArea.style.display = 'none';
-    speakerLabel.style.display = 'none';
-    box.style.cssText = 'width:100%;height:100%;min-height:0;max-height:none;display:flex;align-items:center;justify-content:center;background:transparent;backdrop-filter:none;border:none';
-  } else {
+  if (!dialogues || dialogues.length === 0) {
+    showPuzzle();
+    return;
+  }
     charArea.style.display = '';
     speakerLabel.style.display = '';
     box.style.cssText = '';
