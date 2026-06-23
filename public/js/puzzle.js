@@ -346,7 +346,7 @@ async function playTextLines(lines) {
   const box = document.getElementById('dialogueBox');
   document.querySelector('.character-area').style.display = 'none';
   document.getElementById('speakerLabel').style.display = 'none';
-  box.style.cssText = 'width:100%;min-height:0;max-height:none;display:flex;align-items:center;justify-content:center;background:transparent;backdrop-filter:none;border:none';
+  box.style.cssText = 'width:100%;flex:1;display:flex;align-items:center;justify-content:center;background:transparent;backdrop-filter:none;border:none';
   document.getElementById('progressDots').innerHTML = '';
   document.getElementById('clickHint').style.display = 'none';
 
