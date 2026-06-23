@@ -681,6 +681,26 @@ async function deleteCode(id) {
   }
 }
 
+async function exportCodes() {
+  try {
+    const codes = await api('/api/admin/codes');
+    const unused = codes.filter(c => !c.used);
+    if (unused.length === 0) { alert('没有未使用的验证码可导出'); return; }
+    const lines = unused.map(c => c.code);
+    const blob = new Blob([lines.join('\r\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '验证码_' + new Date().toISOString().slice(0,10) + '.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('导出失败: ' + e.message);
+  }
+}
+
 async function loadComments() {
   const container = document.getElementById('commentsList');
   try {
