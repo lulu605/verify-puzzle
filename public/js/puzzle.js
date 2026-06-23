@@ -49,16 +49,31 @@ function stopMusic() {
   if (bgSource) { try { bgSource.stop(); } catch(e){} bgSource.disconnect(); bgSource = null; }
 }
 
+function isCodeExpired() {
+  const activation = localStorage.getItem('code_activation_date');
+  if (!activation) return true;
+  const today = new Date().toISOString().slice(0, 10);
+  return activation !== today;
+}
+
+function clearVerifiedCode() {
+  localStorage.removeItem('verified_code');
+  localStorage.removeItem('code_activation_date');
+  localStorage.removeItem('puzzle_current_node');
+  localStorage.removeItem('puzzle_inventory');
+}
+
 function enterSite() {
   document.getElementById('entryOverlay').style.display = 'none';
   const savedCode = localStorage.getItem('verified_code');
-  if (savedCode) {
+  if (savedCode && !isCodeExpired()) {
     if (gameConfig.cover_music) {
       currentChapterMusic = gameConfig.cover_music;
       playMusic(gameConfig.cover_music);
     }
     return;
   }
+  if (savedCode && isCodeExpired()) clearVerifiedCode();
   document.getElementById('codeOverlay').style.display = 'flex';
   document.getElementById('codeInput').value = '';
   document.getElementById('codeError').textContent = '';
@@ -81,6 +96,7 @@ async function verifyCode() {
     const data = await res.json();
     if (data.valid) {
       localStorage.setItem('verified_code', data.code);
+      localStorage.setItem('code_activation_date', new Date().toISOString().slice(0, 10));
       document.getElementById('codeOverlay').style.display = 'none';
       if (gameConfig.cover_music) {
         currentChapterMusic = gameConfig.cover_music;
@@ -123,31 +139,39 @@ async function init() {
   gameConfig = gameCfg;
 
   if (localStorage.getItem('verified_code')) {
-    const savedNodeId = localStorage.getItem('puzzle_current_node');
-    const savedInventory = localStorage.getItem('puzzle_inventory');
-    if (savedInventory) {
-      try { inventory = JSON.parse(savedInventory); } catch(e) { inventory = []; }
-    }
-    if (savedNodeId) {
-      try {
-        currentNode = await api('/api/nodes/' + savedNodeId);
+    if (isCodeExpired()) {
+      clearVerifiedCode();
+    } else {
+      const savedNodeId = localStorage.getItem('puzzle_current_node');
+      const savedInventory = localStorage.getItem('puzzle_inventory');
+      if (savedInventory) {
+        try { inventory = JSON.parse(savedInventory); } catch(e) { inventory = []; }
+      }
+      if (savedNodeId) {
+        document.getElementById('entryOverlay').style.display = 'none';
         document.getElementById('coverScreen').style.display = 'none';
-        const chapterName = currentNode.chapter || '';
-        if (chapterName && chapterName !== (nodes[0]?.chapter || '')) {
-          const subtitles = gameCfg.chapter_subtitles || {};
-          document.getElementById('chapterTitleText').textContent = chapterName;
-          document.getElementById('chapterSubtitleText').textContent = subtitles[chapterName] || '';
-          document.getElementById('chapterTitleOverlay').style.display = 'flex';
-          await delay(1500);
-          document.getElementById('chapterTitleOverlay').classList.add('fade-out');
-          await delay(500);
-          document.getElementById('chapterTitleOverlay').style.display = 'none';
-          document.getElementById('chapterTitleOverlay').classList.remove('fade-out');
+        document.getElementById('backpackBtn').style.display = 'flex';
+        document.getElementById('dialoguePhase').style.display = 'flex';
+        try {
+          currentNode = await api('/api/nodes/' + savedNodeId);
+          const chapterName = currentNode.chapter || '';
+          if (chapterName && chapterName !== (nodes[0]?.chapter || '')) {
+            const subtitles = gameCfg.chapter_subtitles || {};
+            document.getElementById('chapterTitleText').textContent = chapterName;
+            document.getElementById('chapterSubtitleText').textContent = subtitles[chapterName] || '';
+            document.getElementById('chapterTitleOverlay').style.display = 'flex';
+            await delay(1500);
+            document.getElementById('chapterTitleOverlay').classList.add('fade-out');
+            await delay(500);
+            document.getElementById('chapterTitleOverlay').style.display = 'none';
+            document.getElementById('chapterTitleOverlay').classList.remove('fade-out');
+          }
+          loadNode(savedNodeId);
+          return;
+        } catch(e) {
+          localStorage.removeItem('puzzle_current_node');
+          localStorage.removeItem('puzzle_inventory');
         }
-        loadNode(savedNodeId);
-      } catch(e) {
-        localStorage.removeItem('puzzle_current_node');
-        localStorage.removeItem('puzzle_inventory');
       }
     }
   }
