@@ -265,12 +265,13 @@ function writeComments(comments) {
 }
 
 app.post('/api/comments', (req, res) => {
-  const { name, rating, content } = req.body;
+  const { name, age, rating, content } = req.body;
   if (!content || !content.trim()) return res.status(400).json({ error: '请输入留言内容' });
   const comments = readComments();
   comments.push({
     id: uuidv4().slice(0, 8),
     name: (name || '匿名').trim(),
+    child_age: (age || '').trim(),
     rating: rating || null,
     content: content.trim(),
     time: new Date().toISOString()

@@ -7,6 +7,7 @@ let dialogueHistory = [];
 let inventory = [];
 let gameConfig = {};
 let currentChapterMusic = null;
+let startTime = null;
 
 async function api(path, opts = {}) {
   const res = await fetch(path, {
@@ -123,6 +124,7 @@ function generateStars() {
 }
 
 async function startGame() {
+  startTime = Date.now();
   inventory = [];
   localStorage.removeItem('puzzle_current_node');
   localStorage.removeItem('puzzle_inventory');
@@ -741,12 +743,35 @@ function showCredits(credits) {
   container.innerHTML = credits.lines.map(line =>
     `<div class="c-line">${escHtml(line)}</div>`
   ).join('');
+  document.getElementById('creditsSkip').style.display = 'block';
   document.getElementById('creditsOverlay').style.display = 'block';
-  setTimeout(() => {
-    document.getElementById('creditsOverlay').style.display = 'none';
-    if (credits.music) stopMusic();
-    showCommentForm();
+  let creditsTimer = setTimeout(() => {
+    finishCredits(credits);
   }, 40000);
+  document.getElementById('creditsSkip').onclick = () => {
+    clearTimeout(creditsTimer);
+    finishCredits(credits);
+  };
+}
+
+function finishCredits(credits) {
+  document.getElementById('creditsSkip').style.display = 'none';
+  document.getElementById('creditsOverlay').style.display = 'none';
+  if (credits.music) stopMusic();
+  showCompletionScreen();
+}
+
+function formatTime(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  return String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+}
+
+function showCompletionScreen() {
+  const overlay = document.getElementById('completionOverlay');
+  document.getElementById('completionTime').textContent = '用时: ' + formatTime(Date.now() - (startTime || Date.now()));
+  overlay.style.display = 'flex';
 }
 
 function showCommentForm() {
@@ -760,6 +785,7 @@ function showCommentForm() {
 
 async function submitComment() {
   const name = document.getElementById('commentName').value.trim();
+  const age = document.getElementById('commentAge').value.trim();
   const content = document.getElementById('commentContent').value.trim();
   const status = document.getElementById('commentStatus');
   if (!content) { status.textContent = '请输入留言内容'; status.style.color = '#ff4757'; return; }
@@ -769,11 +795,12 @@ async function submitComment() {
     await fetch('/api/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name || '匿名', rating: starRating || null, content })
+      body: JSON.stringify({ name: name || '匿名', age: age || '', rating: starRating || null, content })
     });
     status.textContent = '✓ 感谢你的评价！';
     status.style.color = '#64ffda';
     document.getElementById('commentName').value = '';
+    document.getElementById('commentAge').value = '';
     document.getElementById('commentContent').value = '';
   } catch (e) {
     status.textContent = '提交失败: ' + e.message;

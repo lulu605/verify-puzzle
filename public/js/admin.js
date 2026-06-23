@@ -625,6 +625,7 @@ async function loadComments() {
           <span style="color:#64ffda;font-weight:bold">${escHtml(c.name)}</span>
           ${c.rating ? '<span style="color:#ffd700">' + '★'.repeat(c.rating) + '☆'.repeat(5-c.rating) + '</span>' : ''}
         </div>
+        ${c.child_age ? '<div style="color:#8892b0;font-size:12px;margin-bottom:6px">年龄: ' + escHtml(c.child_age) + '</div>' : ''}
         <div style="color:#ccd6f6;font-size:14px;line-height:1.6;margin-bottom:8px">${escHtml(c.content)}</div>
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="color:#4a5580;font-size:12px">${new Date(c.time).toLocaleString()}</span>
