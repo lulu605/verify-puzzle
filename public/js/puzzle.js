@@ -49,128 +49,37 @@ function stopMusic() {
   if (bgSource) { try { bgSource.stop(); } catch(e){} bgSource.disconnect(); bgSource = null; }
 }
 
-function isCodeExpired() {
-  const activation = localStorage.getItem('code_activation_date');
-  if (!activation) return true;
-  const today = new Date().toISOString().slice(0, 10);
-  return activation !== today;
-}
-
-function clearVerifiedCode() {
-  localStorage.removeItem('verified_code');
-  localStorage.removeItem('code_activation_date');
+function clearProgress() {
   localStorage.removeItem('puzzle_current_node');
   localStorage.removeItem('puzzle_inventory');
   localStorage.removeItem('puzzle_dialogue_index');
   localStorage.removeItem('puzzle_display_mode');
 }
 
-async function enterSite() {
-  document.getElementById('entryOverlay').style.display = 'none';
-  const savedCode = localStorage.getItem('verified_code');
-  if (savedCode && !isCodeExpired()) {
-    const localNodeId = localStorage.getItem('puzzle_current_node');
-    const localInventory = localStorage.getItem('puzzle_inventory');
-    const localDialogueIdx = parseInt(localStorage.getItem('puzzle_dialogue_index') || '-1');
-    if (localNodeId) {
-      document.getElementById('coverScreen').style.display = 'none';
-      document.getElementById('backpackBtn').style.display = 'flex';
-      document.getElementById('dialoguePhase').style.display = 'flex';
-      if (localInventory) { try { inventory = JSON.parse(localInventory); } catch(e) {} }
-      loadNode(localNodeId, localDialogueIdx);
-      return;
-    }
-    try {
-      const res = await fetch('/api/verify-code', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: savedCode })
-      });
-      const data = await res.json();
-      if (data.valid && data.saved_node) {
-        document.getElementById('coverScreen').style.display = 'none';
-        document.getElementById('backpackBtn').style.display = 'flex';
-        document.getElementById('dialoguePhase').style.display = 'flex';
-        if (data.saved_inventory) { try { inventory = JSON.parse(data.saved_inventory); } catch(e) {} }
-        const restoreIdx = data.dialogue_index !== undefined ? data.dialogue_index : -1;
-        loadNode(data.saved_node, restoreIdx);
-        return;
-      }
-    } catch(e) {}
-    if (gameConfig.cover_music) {
-      currentChapterMusic = gameConfig.cover_music;
-      playMusic(gameConfig.cover_music);
-    }
-    return;
-  }
-  if (savedCode && isCodeExpired()) clearVerifiedCode();
-  document.getElementById('codeOverlay').style.display = 'flex';
-  document.getElementById('codeInput').value = '';
-  document.getElementById('codeError').textContent = '';
-  document.getElementById('codeInput').focus();
-}
-
-async function saveProgress() {
-  const code = localStorage.getItem('verified_code');
-  if (!code || !currentNode) return;
+function saveLocalState() {
+  if (!currentNode) return;
+  localStorage.setItem('puzzle_current_node', currentNode.node_id);
+  localStorage.setItem('puzzle_inventory', JSON.stringify(inventory));
   localStorage.setItem('puzzle_dialogue_index', currentDialogueIdx);
   localStorage.setItem('puzzle_display_mode', currentNode.display_mode || 'dialogue');
-  try {
-    await fetch('/api/save-progress', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        code,
-        node_id: currentNode.node_id,
-        inventory,
-        dialogue_index: currentDialogueIdx,
-        display_mode: currentNode.display_mode || 'dialogue'
-      })
-    });
-  } catch(e) {}
 }
 
-async function verifyCode() {
-  const input = document.getElementById('codeInput');
-  const code = input.value.trim().toUpperCase();
-  const errorEl = document.getElementById('codeError');
-  if (!code) { errorEl.textContent = '请输入验证码'; return; }
-  errorEl.textContent = '验证中...';
-  errorEl.style.color = '#8892b0';
-  try {
-    const res = await fetch('/api/verify-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
-    });
-    const data = await res.json();
-    if (data.valid) {
-      localStorage.setItem('verified_code', data.code);
-      localStorage.setItem('code_activation_date', new Date().toISOString().slice(0, 10));
-      document.getElementById('codeOverlay').style.display = 'none';
-      if (data.saved_node) {
-        document.getElementById('coverScreen').style.display = 'none';
-        document.getElementById('backpackBtn').style.display = 'flex';
-        document.getElementById('dialoguePhase').style.display = 'flex';
-        if (data.saved_inventory) {
-          try { inventory = JSON.parse(data.saved_inventory); } catch(e) {}
-        }
-        const restoreIdx = data.dialogue_index !== undefined ? data.dialogue_index : -1;
-        loadNode(data.saved_node, restoreIdx);
-      } else {
-        if (gameConfig.cover_music) {
-          currentChapterMusic = gameConfig.cover_music;
-          playMusic(gameConfig.cover_music);
-        }
-      }
-    } else {
-      errorEl.textContent = data.error || '验证码无效';
-      errorEl.style.color = '#ff4757';
-      input.value = '';
-      input.focus();
-    }
-  } catch (e) {
-    errorEl.textContent = '验证失败: ' + e.message;
-    errorEl.style.color = '#ff4757';
+async function enterSite() {
+  document.getElementById('entryOverlay').style.display = 'none';
+  const localNodeId = localStorage.getItem('puzzle_current_node');
+  const localInventory = localStorage.getItem('puzzle_inventory');
+  const localDialogueIdx = parseInt(localStorage.getItem('puzzle_dialogue_index') || '-1');
+  if (localNodeId) {
+    document.getElementById('coverScreen').style.display = 'none';
+    document.getElementById('backpackBtn').style.display = 'flex';
+    document.getElementById('dialoguePhase').style.display = 'flex';
+    if (localInventory) { try { inventory = JSON.parse(localInventory); } catch(e) {} }
+    loadNode(localNodeId, localDialogueIdx);
+    return;
+  }
+  if (gameConfig.cover_music) {
+    currentChapterMusic = gameConfig.cover_music;
+    playMusic(gameConfig.cover_music);
   }
 }
 
@@ -197,10 +106,6 @@ async function init() {
   if (gameCfg.cover_button_text) btn.textContent = gameCfg.cover_button_text;
   document.title = gameCfg.game_name || '验证谜题';
   gameConfig = gameCfg;
-
-  if (localStorage.getItem('verified_code') && isCodeExpired()) {
-    clearVerifiedCode();
-  }
 }
 
 function generateStars() {
@@ -218,8 +123,7 @@ function generateStars() {
 async function startGame() {
   startTime = Date.now();
   inventory = [];
-  localStorage.removeItem('puzzle_current_node');
-  localStorage.removeItem('puzzle_inventory');
+  clearProgress();
   document.getElementById('coverScreen').style.display = 'none';
   const nodes = await api('/api/nodes');
   const firstNode = nodes[0];
@@ -244,7 +148,7 @@ async function loadNode(nodeId, restoreIdx = -1) {
   localStorage.setItem('puzzle_current_node', nodeId);
   localStorage.setItem('puzzle_inventory', JSON.stringify(inventory));
   currentDialogueIdx = restoreIdx >= 0 ? restoreIdx : 0;
-  saveProgress();
+  saveLocalState();
   attempts = 0;
   isPaused = false;
 
@@ -419,7 +323,7 @@ async function playDialogues() {
     if (i < dialogues.length - 1) {
       document.getElementById('clickHint').style.display = 'block';
       await waitForClick(document.getElementById('dialogueBox'));
-      saveProgress();
+      saveLocalState();
     }
   }
 
@@ -467,7 +371,7 @@ async function playTextLines(lines, resumeFromIdx = 0) {
     if (i < lines.length - 1) {
       await waitForClick(box);
       hintDiv.style.display = 'none';
-      saveProgress();
+      saveLocalState();
     }
   }
 
@@ -866,8 +770,7 @@ function formatTime(ms) {
 }
 
 function showCompletionScreen() {
-  localStorage.removeItem('puzzle_current_node');
-  localStorage.removeItem('puzzle_inventory');
+  clearProgress();
   const overlay = document.getElementById('completionOverlay');
   document.getElementById('completionTime').textContent = '用时: ' + formatTime(Date.now() - (startTime || Date.now()));
   overlay.style.display = 'flex';
@@ -891,24 +794,11 @@ async function submitComment() {
   status.textContent = '提交中...';
   status.style.color = '#8892b0';
   try {
-    const [commentRes] = await Promise.all([
-      fetch('/api/comments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name || '匿名', age: age || '', rating: starRating || null, content })
-      }),
-      (async () => {
-        const savedCode = localStorage.getItem('verified_code');
-        if (savedCode) {
-          await fetch('/api/consume-code', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: savedCode })
-          });
-          localStorage.removeItem('verified_code');
-        }
-      })()
-    ]);
+    const commentRes = await fetch('/api/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name || '匿名', age: age || '', rating: starRating || null, content })
+    });
     if (!commentRes.ok) throw new Error(await commentRes.text());
     status.textContent = '✓ 感谢你的评价！';
     status.style.color = '#64ffda';
@@ -931,10 +821,7 @@ function showToast(msg) {
 
 function confirmRestart() {
   if (confirm('确定要重新开始吗？当前进度将丢失。')) {
-  localStorage.removeItem('puzzle_current_node');
-  localStorage.removeItem('puzzle_inventory');
-  localStorage.removeItem('puzzle_dialogue_index');
-  localStorage.removeItem('puzzle_display_mode');
+    clearProgress();
     inventory = [];
     location.reload();
   }
