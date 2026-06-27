@@ -61,6 +61,8 @@ function clearVerifiedCode() {
   localStorage.removeItem('code_activation_date');
   localStorage.removeItem('puzzle_current_node');
   localStorage.removeItem('puzzle_inventory');
+  localStorage.removeItem('puzzle_dialogue_index');
+  localStorage.removeItem('puzzle_display_mode');
 }
 
 async function enterSite() {
@@ -69,12 +71,13 @@ async function enterSite() {
   if (savedCode && !isCodeExpired()) {
     const localNodeId = localStorage.getItem('puzzle_current_node');
     const localInventory = localStorage.getItem('puzzle_inventory');
+    const localDialogueIdx = parseInt(localStorage.getItem('puzzle_dialogue_index') || '-1');
     if (localNodeId) {
       document.getElementById('coverScreen').style.display = 'none';
       document.getElementById('backpackBtn').style.display = 'flex';
       document.getElementById('dialoguePhase').style.display = 'flex';
       if (localInventory) { try { inventory = JSON.parse(localInventory); } catch(e) {} }
-      loadNode(localNodeId);
+      loadNode(localNodeId, localDialogueIdx);
       return;
     }
     try {
@@ -88,7 +91,8 @@ async function enterSite() {
         document.getElementById('backpackBtn').style.display = 'flex';
         document.getElementById('dialoguePhase').style.display = 'flex';
         if (data.saved_inventory) { try { inventory = JSON.parse(data.saved_inventory); } catch(e) {} }
-        loadNode(data.saved_node);
+        const restoreIdx = data.dialogue_index !== undefined ? data.dialogue_index : -1;
+        loadNode(data.saved_node, restoreIdx);
         return;
       }
     } catch(e) {}
@@ -108,11 +112,19 @@ async function enterSite() {
 async function saveProgress() {
   const code = localStorage.getItem('verified_code');
   if (!code || !currentNode) return;
+  localStorage.setItem('puzzle_dialogue_index', currentDialogueIdx);
+  localStorage.setItem('puzzle_display_mode', currentNode.display_mode || 'dialogue');
   try {
     await fetch('/api/save-progress', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, node_id: currentNode.node_id, inventory })
+      body: JSON.stringify({
+        code,
+        node_id: currentNode.node_id,
+        inventory,
+        dialogue_index: currentDialogueIdx,
+        display_mode: currentNode.display_mode || 'dialogue'
+      })
     });
   } catch(e) {}
 }
@@ -142,7 +154,8 @@ async function verifyCode() {
         if (data.saved_inventory) {
           try { inventory = JSON.parse(data.saved_inventory); } catch(e) {}
         }
-        loadNode(data.saved_node);
+        const restoreIdx = data.dialogue_index !== undefined ? data.dialogue_index : -1;
+        loadNode(data.saved_node, restoreIdx);
       } else {
         if (gameConfig.cover_music) {
           currentChapterMusic = gameConfig.cover_music;
@@ -226,12 +239,12 @@ async function startGame() {
   if (nodes.length > 0) loadNode(nodes[0].node_id);
 }
 
-async function loadNode(nodeId) {
+async function loadNode(nodeId, restoreIdx = -1) {
   currentNode = await api(`/api/nodes/${nodeId}`);
   localStorage.setItem('puzzle_current_node', nodeId);
   localStorage.setItem('puzzle_inventory', JSON.stringify(inventory));
+  currentDialogueIdx = restoreIdx >= 0 ? restoreIdx : 0;
   saveProgress();
-  currentDialogueIdx = 0;
   attempts = 0;
   isPaused = false;
 
@@ -334,12 +347,13 @@ function renderProgress(count) {
 async function playDialogues() {
   const isTextMode = currentNode.display_mode === 'text';
   const dialogues = currentNode.dialogues;
+  const resumeFromIdx = currentDialogueIdx;
   document.getElementById('dialogueContainer').innerHTML = '';
   document.getElementById('goPuzzleBtn').style.display = 'none';
     if (isTextMode) {
       if (currentNode.text_music) playMusic(currentNode.text_music);
       const lines = (currentNode.text_content || '').split('\n').filter(l => l.trim());
-      await playTextLines(lines);
+      await playTextLines(lines, resumeFromIdx);
       return;
   }
 
@@ -397,13 +411,15 @@ async function playDialogues() {
 
     updateProgress(i);
 
-    await typeText(entry.querySelector('.dialogue-text'), text, d.typewriter_speed || 20);
+    const speed = (resumeFromIdx > 0 && i === resumeFromIdx) ? 1 : (d.typewriter_speed || 20);
+    await typeText(entry.querySelector('.dialogue-text'), text, speed);
 
     dialogueHistory.push({ text, image: null, speaker, avatar });
 
     if (i < dialogues.length - 1) {
       document.getElementById('clickHint').style.display = 'block';
       await waitForClick(document.getElementById('dialogueBox'));
+      saveProgress();
     }
   }
 
@@ -423,7 +439,7 @@ async function playDialogues() {
   box.scrollTop = box.scrollHeight;
 }
 
-async function playTextLines(lines) {
+async function playTextLines(lines, resumeFromIdx = 0) {
   const box = document.getElementById('dialogueBox');
   document.querySelector('.character-area').style.display = 'none';
   document.getElementById('speakerLabel').style.display = 'none';
@@ -431,7 +447,7 @@ async function playTextLines(lines) {
   document.getElementById('progressDots').innerHTML = '';
   document.getElementById('clickHint').style.display = 'none';
 
-  for (let i = 0; i < lines.length; i++) {
+  for (let i = currentDialogueIdx; i < lines.length; i++) {
     currentDialogueIdx = i;
     document.getElementById('dialogueContainer').innerHTML = '';
     const entry = document.createElement('div');
@@ -446,10 +462,12 @@ async function playTextLines(lines) {
     entry.appendChild(textDiv);
     entry.appendChild(hintDiv);
     document.getElementById('dialogueContainer').appendChild(entry);
-    await typeText(textDiv, lines[i], 20);
+    const speed = (resumeFromIdx > 0 && i === resumeFromIdx) ? 1 : 20;
+    await typeText(textDiv, lines[i], speed);
     if (i < lines.length - 1) {
       await waitForClick(box);
       hintDiv.style.display = 'none';
+      saveProgress();
     }
   }
 
@@ -913,8 +931,10 @@ function showToast(msg) {
 
 function confirmRestart() {
   if (confirm('确定要重新开始吗？当前进度将丢失。')) {
-    localStorage.removeItem('puzzle_current_node');
-    localStorage.removeItem('puzzle_inventory');
+  localStorage.removeItem('puzzle_current_node');
+  localStorage.removeItem('puzzle_inventory');
+  localStorage.removeItem('puzzle_dialogue_index');
+  localStorage.removeItem('puzzle_display_mode');
     inventory = [];
     location.reload();
   }

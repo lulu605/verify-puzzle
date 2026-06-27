@@ -351,18 +351,22 @@ app.post('/api/verify-code', (req, res) => {
     valid: true,
     code: entry.code,
     saved_node: entry.saved_node || null,
-    saved_inventory: entry.saved_inventory || null
+    saved_inventory: entry.saved_inventory || null,
+    dialogue_index: entry.dialogue_index !== undefined ? entry.dialogue_index : -1,
+    display_mode: entry.display_mode || 'dialogue'
   });
 });
 
 app.post('/api/save-progress', (req, res) => {
-  const { code, node_id, inventory } = req.body;
+  const { code, node_id, inventory, dialogue_index, display_mode } = req.body;
   if (!code || !node_id) return res.status(400).json({ error: '参数错误' });
   const codes = readCodes();
   const entry = codes.find(c => c.code === code.trim().toUpperCase());
   if (!entry) return res.status(400).json({ error: '验证码不存在' });
   entry.saved_node = node_id;
   entry.saved_inventory = inventory || null;
+  entry.dialogue_index = dialogue_index !== undefined ? dialogue_index : 0;
+  entry.display_mode = display_mode || 'dialogue';
   writeCodes(codes);
   res.json({ success: true });
 });
@@ -378,6 +382,8 @@ app.post('/api/consume-code', (req, res) => {
   entry.used_at = new Date().toISOString();
   entry.saved_node = null;
   entry.saved_inventory = null;
+  entry.dialogue_index = -1;
+  entry.display_mode = null;
   writeCodes(codes);
   res.json({ success: true });
 });
