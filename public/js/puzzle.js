@@ -67,6 +67,16 @@ async function enterSite() {
   document.getElementById('entryOverlay').style.display = 'none';
   const savedCode = localStorage.getItem('verified_code');
   if (savedCode && !isCodeExpired()) {
+    const localNodeId = localStorage.getItem('puzzle_current_node');
+    const localInventory = localStorage.getItem('puzzle_inventory');
+    if (localNodeId) {
+      document.getElementById('coverScreen').style.display = 'none';
+      document.getElementById('backpackBtn').style.display = 'flex';
+      document.getElementById('dialoguePhase').style.display = 'flex';
+      if (localInventory) { try { inventory = JSON.parse(localInventory); } catch(e) {} }
+      loadNode(localNodeId);
+      return;
+    }
     try {
       const res = await fetch('/api/verify-code', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
