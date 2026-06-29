@@ -109,6 +109,22 @@ async function enterSite() {
 function showChapterSelect(unlocked) {
   const list = document.getElementById('chapterList');
   list.innerHTML = '';
+  const saveNodeId = localStorage.getItem('puzzle_current_node');
+  if (saveNodeId && saveNodeId !== 'null') {
+    const cBtn = document.createElement('button');
+    cBtn.className = 'chapter-btn continue-btn';
+    cBtn.textContent = '▶ 继续游戏';
+    cBtn.onclick = () => {
+      document.getElementById('chapterSelectOverlay').style.display = 'none';
+      document.querySelector('.node-selector').style.display = '';
+      const localDialogueIdx = parseInt(localStorage.getItem('puzzle_dialogue_index') || '-1');
+      const cachedData = localStorage.getItem('puzzle_node_data');
+      let cachedNode = null;
+      if (cachedData) { try { cachedNode = JSON.parse(cachedData); } catch(e) {} }
+      loadNode(saveNodeId, localDialogueIdx, cachedNode);
+    };
+    list.appendChild(cBtn);
+  }
   const chs = [...new Set((allNodes || []).map(n => n.chapter).filter(Boolean))];
   chs.forEach(ch => {
     const btn = document.createElement('button');
