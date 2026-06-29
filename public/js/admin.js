@@ -413,6 +413,17 @@ function clearPuzzleMusic() {
   autoSave();
 }
 
+async function applyPuzzleMusicAll() {
+  const val = document.getElementById('editPuzzleMusic').value;
+  if (!val) { alert('请先设置验证页背景音乐'); return; }
+  if (!confirm('确定将验证页背景音乐「' + val.split('/').pop() + '」应用到全部节点？')) return;
+  const nodes = await api('/api/nodes');
+  for (const n of nodes) {
+    await api('/api/nodes/' + n.node_id, { method: 'PUT', body: JSON.stringify({ puzzle_music: val }) });
+  }
+  alert('已应用到全部 ' + nodes.length + ' 个节点');
+}
+
 function uploadCreditsMusic() {
   uploadTarget = 'creditsMusic';
   document.getElementById('fileInput').value = '';
