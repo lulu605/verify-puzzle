@@ -327,6 +327,7 @@ async function playDialogues() {
     if (i < dialogues.length - 1) {
       document.getElementById('clickHint').style.display = 'block';
       await waitForClick(document.getElementById('dialogueBox'));
+      currentDialogueIdx = i + 1;
       saveLocalState();
     }
   }
@@ -375,6 +376,7 @@ async function playTextLines(lines, resumeFromIdx = 0) {
     if (i < lines.length - 1) {
       await waitForClick(box);
       hintDiv.style.display = 'none';
+      currentDialogueIdx = i + 1;
       saveLocalState();
     }
   }
