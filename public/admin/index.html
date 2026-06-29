@@ -185,6 +185,15 @@
           </div>
         </div>
         <div class="form-group">
+          <label>验证页背景音乐（可选）</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="editPuzzleMusic" class="input" placeholder="音乐URL或留空" readonly onclick="uploadPuzzleMusic()" style="flex:1">
+            <button class="btn btn-sm" onclick="uploadPuzzleMusic()" title="上传音乐">📁</button>
+            <button class="btn btn-sm btn-secondary" onclick="playPuzzleMusic()" title="试听">▶</button>
+            <button class="btn btn-sm btn-danger" onclick="clearPuzzleMusic()" title="清除">×</button>
+          </div>
+        </div>
+        <div class="form-group">
           <label>道具</label>
           <div id="itemsList" class="items-list"></div>
           <button class="btn btn-sm btn-primary" onclick="addItem()" style="margin-top:6px">+ 添加道具</button>

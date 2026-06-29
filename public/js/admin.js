@@ -143,6 +143,7 @@ async function selectNode(id) {
   document.getElementById('editTextContent').value = node.text_content || '';
   document.getElementById('editTextMusic').value = node.text_music || '';
   document.getElementById('editNodeMusic').value = node.music || '';
+  document.getElementById('editPuzzleMusic').value = node.puzzle_music || '';
   document.getElementById('editShowCreditsAfter').checked = !!node.show_credits_after;
   const isText = (node.display_mode || 'dialogue') === 'text';
   document.getElementById('textModeGroup').style.display = isText ? 'block' : 'none';
@@ -281,6 +282,7 @@ async function autoSaveNow() {
       text_content: document.getElementById('editTextContent').value,
       text_music: document.getElementById('editTextMusic').value || null,
       music: document.getElementById('editNodeMusic').value || null,
+      puzzle_music: document.getElementById('editPuzzleMusic').value || null,
       show_credits_after: document.getElementById('editShowCreditsAfter').checked,
       next_node_id: document.getElementById('editNextNode').value || null
     })
@@ -393,6 +395,24 @@ function clearNodeMusic() {
   autoSave();
 }
 
+function uploadPuzzleMusic() {
+  uploadTarget = 'puzzleMusic';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('imgUploadModal').style.display = 'flex';
+}
+
+function playPuzzleMusic() {
+  const val = document.getElementById('editPuzzleMusic').value;
+  if (!val) return;
+  const audio = new Audio(val);
+  audio.play().catch(e => alert('播放失败: ' + e.message));
+}
+
+function clearPuzzleMusic() {
+  document.getElementById('editPuzzleMusic').value = '';
+  autoSave();
+}
+
 function uploadCreditsMusic() {
   uploadTarget = 'creditsMusic';
   document.getElementById('fileInput').value = '';
@@ -485,6 +505,9 @@ async function handleUpload() {
       autoSave();
     } else if (uploadTarget === 'nodeMusic') {
       document.getElementById('editNodeMusic').value = data.url;
+      autoSave();
+    } else if (uploadTarget === 'puzzleMusic') {
+      document.getElementById('editPuzzleMusic').value = data.url;
       autoSave();
     } else if (uploadTarget === 'creditsMusic') {
       document.getElementById('editCreditsMusic').value = data.url;

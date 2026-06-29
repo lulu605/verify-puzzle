@@ -456,6 +456,10 @@ function updateProgress(idx) {
 function showPuzzle() {
   document.getElementById('dialoguePhase').style.display = 'none';
   document.getElementById('puzzleArea').style.display = 'flex';
+  if (currentNode.puzzle_music && currentNode.puzzle_music !== currentChapterMusic) {
+    currentChapterMusic = currentNode.puzzle_music;
+    playMusic(currentNode.puzzle_music);
+  }
   const puzzle = currentNode.puzzle;
   document.getElementById('puzzleQuestion').textContent = puzzle.question_text || '请输入答案';
 
