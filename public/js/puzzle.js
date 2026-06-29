@@ -173,6 +173,7 @@ async function loadNode(nodeId, restoreIdx = -1, cachedNode = null) {
   } else {
     currentNode = await api(`/api/nodes/${nodeId}`);
   }
+  localStorage.removeItem('puzzle_at_puzzle');
   localStorage.setItem('puzzle_current_node', nodeId);
   localStorage.setItem('puzzle_inventory', JSON.stringify(inventory));
   currentDialogueIdx = restoreIdx >= 0 ? restoreIdx : 0;
