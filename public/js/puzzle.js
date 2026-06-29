@@ -54,6 +54,8 @@ function clearProgress() {
   localStorage.removeItem('puzzle_inventory');
   localStorage.removeItem('puzzle_dialogue_index');
   localStorage.removeItem('puzzle_display_mode');
+  localStorage.removeItem('puzzle_node_data');
+  localStorage.removeItem('puzzle_at_puzzle');
 }
 
 function saveLocalState() {
@@ -62,6 +64,7 @@ function saveLocalState() {
   localStorage.setItem('puzzle_inventory', JSON.stringify(inventory));
   localStorage.setItem('puzzle_dialogue_index', currentDialogueIdx);
   localStorage.setItem('puzzle_display_mode', currentNode.display_mode || 'dialogue');
+  localStorage.setItem('puzzle_node_data', JSON.stringify(currentNode));
 }
 
 async function enterSite() {
@@ -70,11 +73,32 @@ async function enterSite() {
   const localInventory = localStorage.getItem('puzzle_inventory');
   const localDialogueIdx = parseInt(localStorage.getItem('puzzle_dialogue_index') || '-1');
   if (localNodeId) {
+    let cachedNode = null;
+    const cachedData = localStorage.getItem('puzzle_node_data');
+    if (cachedData) { try { cachedNode = JSON.parse(cachedData); } catch(e) {} }
     document.getElementById('coverScreen').style.display = 'none';
     document.getElementById('backpackBtn').style.display = 'flex';
-    document.getElementById('dialoguePhase').style.display = 'flex';
     if (localInventory) { try { inventory = JSON.parse(localInventory); } catch(e) {} }
-    loadNode(localNodeId, localDialogueIdx);
+    if (localStorage.getItem('puzzle_at_puzzle') && cachedNode && cachedNode.display_mode !== 'text') {
+      currentNode = cachedNode;
+      document.getElementById('puzzleArea').style.display = 'flex';
+      document.getElementById('dialoguePhase').style.display = 'none';
+      if (currentNode.puzzle_music && currentNode.puzzle_music !== currentChapterMusic) {
+        currentChapterMusic = currentNode.puzzle_music;
+        playMusic(currentNode.puzzle_music);
+      }
+      const puzzle = currentNode.puzzle;
+      if (puzzle) {
+        document.getElementById('puzzleQuestion').textContent = puzzle.question_text || '请输入答案';
+        const pImg = document.getElementById('puzzleImage');
+        if (puzzle.question_image) { pImg.src = puzzle.question_image; pImg.style.display = 'block'; }
+        else { pImg.style.display = 'none'; }
+      }
+      document.getElementById('puzzleError').textContent = '';
+      document.getElementById('puzzleInput').focus();
+      return;
+    }
+    loadNode(localNodeId, localDialogueIdx, cachedNode);
     return;
   }
   if (gameConfig.cover_music) {
@@ -143,12 +167,15 @@ async function startGame() {
   if (nodes.length > 0) loadNode(nodes[0].node_id);
 }
 
-async function loadNode(nodeId, restoreIdx = -1) {
-  currentNode = await api(`/api/nodes/${nodeId}`);
+async function loadNode(nodeId, restoreIdx = -1, cachedNode = null) {
+  if (cachedNode && cachedNode.node_id === nodeId) {
+    currentNode = cachedNode;
+  } else {
+    currentNode = await api(`/api/nodes/${nodeId}`);
+  }
   localStorage.setItem('puzzle_current_node', nodeId);
   localStorage.setItem('puzzle_inventory', JSON.stringify(inventory));
   currentDialogueIdx = restoreIdx >= 0 ? restoreIdx : 0;
-  saveLocalState();
   attempts = 0;
   isPaused = false;
 
@@ -456,6 +483,7 @@ function updateProgress(idx) {
 }
 
 function showPuzzle() {
+  localStorage.setItem('puzzle_at_puzzle', '1');
   document.getElementById('dialoguePhase').style.display = 'none';
   document.getElementById('puzzleArea').style.display = 'flex';
   if (currentNode.puzzle_music && currentNode.puzzle_music !== currentChapterMusic) {
