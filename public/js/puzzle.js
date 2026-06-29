@@ -254,10 +254,12 @@ async function loadNode(nodeId, restoreIdx = -1, cachedNode = null) {
   document.getElementById('charArt').style.display = 'none';
   document.getElementById('charNameTag').style.display = 'none';
   renderProgress(currentNode.dialogues.length);
-  if (currentNode.music) {
-    if (currentNode.music !== currentChapterMusic) { currentChapterMusic = currentNode.music; playMusic(currentNode.music); }
-  } else {
-    playChapterMusic(currentNode.chapter);
+  if (!(currentNode.display_mode === 'text' && currentNode.text_music)) {
+    if (currentNode.music) {
+      if (currentNode.music !== currentChapterMusic) { currentChapterMusic = currentNode.music; playMusic(currentNode.music); }
+    } else {
+      playChapterMusic(currentNode.chapter);
+    }
   }
   await playDialogues();
 }
