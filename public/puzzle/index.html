@@ -102,8 +102,10 @@ body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;width:100vw;height:1
 .backpack-item{background:#141834;border:1px solid #1a2040;border-radius:8px;padding:8px;text-align:center}
 .backpack-item img{width:100%;aspect-ratio:1;object-fit:contain;border-radius:4px;background:rgba(0,0,0,0.3)}
 .backpack-item .item-name{color:#8892b0;font-size:12px;margin-top:4px}
-.node-selector{position:absolute;top:8px;right:10px;z-index:50;background:rgba(0,0,0,0.3);border-radius:6px;padding:2px;backdrop-filter:blur(4px)}
+.node-selector{position:absolute;top:8px;right:10px;z-index:50;background:rgba(0,0,0,0.35);border-radius:6px;padding:4px 6px 6px;backdrop-filter:blur(4px)}
 .node-selector select{padding:6px 12px;background:rgba(0,0,0,0.4);border:1px solid rgba(100,255,218,0.2);border-radius:4px;color:#fff;font-size:13px;outline:none;cursor:pointer;min-width:80px}
+.node-selector .reset-btn{display:block;width:100%;margin-top:4px;padding:4px 8px;background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);border-radius:4px;color:#ff6b81;font-size:11px;cursor:pointer;transition:.3s;font-family:inherit;text-align:center}
+.node-selector .reset-btn:hover{background:rgba(255,71,87,0.2)}
 
 </style>
 </head>
@@ -131,6 +133,7 @@ body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;width:100vw;height:1
   </div>
   <div class="node-selector">
     <select id="nodeSelector" onchange="loadNode(this.value)"></select>
+    <button class="reset-btn" onclick="confirmRestart()">↺ 重置</button>
   </div>
   <div id="dialoguePhase" style="display:flex;flex-direction:column;height:100%">
     <div class="dialogue-progress" id="progressDots"></div>
