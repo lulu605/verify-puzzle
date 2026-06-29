@@ -42,6 +42,7 @@ async function playMusic(url) {
     bgSource.loop = true;
     bgSource.connect(bgGain).connect(ctx.destination);
     bgSource.start();
+    currentChapterMusic = url;
   } catch (e) { console.warn('Audio error', e); }
 }
 
