@@ -142,6 +142,7 @@ async function selectNode(id) {
   document.getElementById('editDisplayMode').value = node.display_mode || 'dialogue';
   document.getElementById('editTextContent').value = node.text_content || '';
   document.getElementById('editTextMusic').value = node.text_music || '';
+  document.getElementById('editNodeMusic').value = node.music || '';
   document.getElementById('editShowCreditsAfter').checked = !!node.show_credits_after;
   const isText = (node.display_mode || 'dialogue') === 'text';
   document.getElementById('textModeGroup').style.display = isText ? 'block' : 'none';
@@ -279,6 +280,7 @@ async function autoSaveNow() {
       display_mode: document.getElementById('editDisplayMode').value,
       text_content: document.getElementById('editTextContent').value,
       text_music: document.getElementById('editTextMusic').value || null,
+      music: document.getElementById('editNodeMusic').value || null,
       show_credits_after: document.getElementById('editShowCreditsAfter').checked,
       next_node_id: document.getElementById('editNextNode').value || null
     })
@@ -373,6 +375,24 @@ function clearTextMusic() {
   autoSave();
 }
 
+function uploadNodeMusic() {
+  uploadTarget = 'nodeMusic';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('imgUploadModal').style.display = 'flex';
+}
+
+function playNodeMusic() {
+  const val = document.getElementById('editNodeMusic').value;
+  if (!val) return;
+  const audio = new Audio(val);
+  audio.play().catch(e => alert('播放失败: ' + e.message));
+}
+
+function clearNodeMusic() {
+  document.getElementById('editNodeMusic').value = '';
+  autoSave();
+}
+
 function uploadCreditsMusic() {
   uploadTarget = 'creditsMusic';
   document.getElementById('fileInput').value = '';
@@ -462,6 +482,9 @@ async function handleUpload() {
       autoSaveGame();
     } else if (uploadTarget === 'textMusic') {
       document.getElementById('editTextMusic').value = data.url;
+      autoSave();
+    } else if (uploadTarget === 'nodeMusic') {
+      document.getElementById('editNodeMusic').value = data.url;
       autoSave();
     } else if (uploadTarget === 'creditsMusic') {
       document.getElementById('editCreditsMusic').value = data.url;
