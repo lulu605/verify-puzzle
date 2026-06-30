@@ -9,6 +9,15 @@
 <body>
 <div class="app">
   <aside class="sidebar">
+    <div class="story-bar">
+      <select id="storySelector" class="input" onchange="switchStory(this.value)" style="width:100%;font-size:13px;padding:6px 8px"></select>
+      <div style="display:flex;gap:4px;margin-top:4px">
+        <button class="btn btn-xs btn-primary" onclick="createStory()" style="flex:1;font-size:11px">+ 新建</button>
+        <button class="btn btn-xs btn-secondary" onclick="copyStory()" style="flex:1;font-size:11px">📋 复制</button>
+        <button class="btn btn-xs btn-danger" onclick="deleteStory()" style="flex:1;font-size:11px">🗑</button>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
     <h2>📖 章节管理</h2>
     <div id="chapterList" class="chapter-list"></div>
     <button class="btn btn-primary" onclick="addChapter()" style="width:100%;margin-top:8px">+ 新建章节</button>

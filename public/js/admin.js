@@ -2,8 +2,14 @@ let currentId = null;
 let saveTimer = null;
 let previewIdx = 0;
 let adminToken = localStorage.getItem('admin_token');
+let currentStoryId = localStorage.getItem('admin_story_id') || '';
+let stories = [];
 
 async function api(path, opts = {}) {
+  if (currentStoryId && !path.includes('story=') && !path.includes('/admin/login') && !path.includes('/admin/check-token') && !path.includes('/api/stories')) {
+    const sep = path.includes('?') ? '&' : '?';
+    path = path + sep + 'story=' + currentStoryId;
+  }
   const headers = { 'Content-Type': 'application/json', ...opts.headers };
   if (adminToken) headers['Authorization'] = adminToken;
   const res = await fetch(path, { headers, ...opts });
@@ -15,6 +21,55 @@ async function api(path, opts = {}) {
   }
   if (!res.ok) throw new Error(await res.text());
   return res.json();
+}
+
+async function loadStories() {
+  stories = await api('/api/stories');
+  const sel = document.getElementById('storySelector');
+  sel.innerHTML = stories.map(s => `<option value="${s.id}">${escHtml(s.name)}</option>`).join('');
+  if (!currentStoryId || !stories.find(s => s.id === currentStoryId)) {
+    currentStoryId = stories[0]?.id || '';
+  }
+  sel.value = currentStoryId;
+  localStorage.setItem('admin_story_id', currentStoryId);
+  if (currentStoryId) loadChapters();
+}
+
+async function switchStory(id) {
+  currentStoryId = id;
+  localStorage.setItem('admin_story_id', id);
+  document.getElementById('editorContent').style.display = 'none';
+  document.getElementById('editorPlaceholder').style.display = 'block';
+  document.getElementById('gameConfigEditor').style.display = 'none';
+  document.getElementById('codesView').style.display = 'none';
+  document.getElementById('commentsView').style.display = 'none';
+  currentId = null;
+  await loadChapters();
+}
+
+async function createStory() {
+  const name = prompt('输入新故事名称：');
+  if (!name || !name.trim()) return;
+  await api('/api/stories', { method: 'POST', body: JSON.stringify({ name: name.trim() }) });
+  await loadStories();
+  if (stories.length > 0) await switchStory(stories[stories.length - 1].id);
+}
+
+async function copyStory() {
+  if (!currentStoryId) return;
+  const name = prompt('输入副本名称：');
+  await api('/api/stories/' + currentStoryId + '/copy', { method: 'POST', body: JSON.stringify({ name: name || '' }) });
+  await loadStories();
+  if (stories.length > 0) await switchStory(stories[stories.length - 1].id);
+}
+
+async function deleteStory() {
+  if (!currentStoryId) return;
+  const s = stories.find(x => x.id === currentStoryId);
+  if (!s || !confirm('确定要删除故事「' + s.name + '」？所有数据和上传文件将被删除！')) return;
+  await api('/api/stories/' + currentStoryId, { method: 'DELETE' });
+  await loadStories();
+  if (stories.length > 0) await switchStory(stories[0].id);
 }
 
 async function loadChapters() {
@@ -486,7 +541,8 @@ async function handleUpload() {
   try {
     const headers = {};
     if (adminToken) headers['Authorization'] = adminToken;
-    const res = await fetch('/api/upload', { method: 'POST', body: formData, headers });
+    const uploadUrl = currentStoryId ? '/api/upload?story=' + currentStoryId : '/api/upload';
+    const res = await fetch(uploadUrl, { method: 'POST', body: formData, headers });
     const data = await res.json();
     if (uploadTarget === 'question') {
       document.getElementById('editQuestionImage').value = data.url;
@@ -978,7 +1034,8 @@ async function initAdmin() {
     });
     if (!res.ok) { localStorage.removeItem('admin_token'); adminToken = null; document.getElementById('loginOverlay').style.display = 'flex'; return; }
     document.getElementById('loginOverlay').style.display = 'none';
-    loadChapters();
+    currentStoryId = localStorage.getItem('admin_story_id') || '';
+    await loadStories();
     loadGameConfig();
   } catch {
     document.getElementById('loginOverlay').style.display = 'flex';

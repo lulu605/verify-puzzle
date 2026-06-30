@@ -93,3 +93,6 @@ select.input{cursor:pointer}
 .preview-speaker{color:#64ffda;font-size:11px;font-weight:bold;margin-bottom:3px}
 .preview-text{color:#e0e0e0;font-size:12px;line-height:1.5;white-space:pre-wrap}
 .preview-click-hint{text-align:right;color:#64ffda;font-size:10px;margin-top:4px;opacity:0.6}
+.story-bar{padding:4px 0 8px}
+.story-bar select{font-size:13px;padding:6px 8px;background:#141834;border:1px solid #1a2040;border-radius:6px;color:#ccd6f6;outline:none;cursor:pointer;width:100%}
+.story-bar select:focus{border-color:#64ffda}
