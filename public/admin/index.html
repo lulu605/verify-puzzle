@@ -9,15 +9,7 @@
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="story-bar">
-      <select id="storySelector" class="input" onchange="switchStory(this.value)" style="width:100%;font-size:13px;padding:6px 8px"></select>
-      <div style="display:flex;gap:4px;margin-top:4px">
-        <button class="btn btn-xs btn-primary" onclick="createStory()" style="flex:1;font-size:11px">+ 新建</button>
-        <button class="btn btn-xs btn-secondary" onclick="copyStory()" style="flex:1;font-size:11px">📋 复制</button>
-        <button class="btn btn-xs btn-danger" onclick="deleteStory()" style="flex:1;font-size:11px">🗑</button>
-      </div>
-    </div>
-    <div class="sidebar-divider"></div>
+    <div class="sidebar-menu-item" onclick="showStoryManager()" style="font-weight:bold;border-bottom:1px solid #1a2040;margin-bottom:8px">📚 故事管理 <span id="storyBadge" style="font-size:11px;color:#8892b0;margin-left:auto"></span></div>
     <h2>📖 章节管理</h2>
     <div id="chapterList" class="chapter-list"></div>
     <button class="btn btn-primary" onclick="addChapter()" style="width:100%;margin-top:8px">+ 新建章节</button>
@@ -308,6 +300,13 @@
   <div id="commentsView" class="editor-content" style="display:none">
     <h3 style="color:#64ffda;margin-bottom:16px">💬 用户留言</h3>
     <div id="commentsList"></div>
+  </div>
+  <div id="storyManageView" class="editor-content" style="display:none">
+    <h3 style="color:#64ffda;margin-bottom:16px">📚 故事管理</h3>
+    <div style="margin-bottom:20px">
+      <button class="btn btn-primary" onclick="createStory()">+ 新建故事</button>
+    </div>
+    <div id="storyManageList" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
   </main>
 </div>

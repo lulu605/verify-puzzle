@@ -96,3 +96,12 @@ select.input{cursor:pointer}
 .story-bar{padding:4px 0 8px}
 .story-bar select{font-size:13px;padding:6px 8px;background:#141834;border:1px solid #1a2040;border-radius:6px;color:#ccd6f6;outline:none;cursor:pointer;width:100%}
 .story-bar select:focus{border-color:#64ffda}
+.story-card{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#141834;border:1px solid #1a2040;border-radius:8px;cursor:pointer;transition:.2s}
+.story-card:hover{border-color:#4a5580}
+.story-card.active{border-color:#64ffda;background:#1c2450}
+.story-card .sc-name{flex:1;font-size:15px;color:#ccd6f6;font-weight:bold}
+.story-card .sc-url{font-size:11px;color:#4a5580;margin-top:2px}
+.story-card .sc-date{font-size:11px;color:#4a5580}
+.story-card .sc-actions{display:flex;gap:4px;opacity:0;transition:.2s}
+.story-card:hover .sc-actions{opacity:1}
+.story-card .sc-badge{font-size:11px;color:#64ffda;background:rgba(100,255,218,0.1);padding:2px 8px;border-radius:4px}

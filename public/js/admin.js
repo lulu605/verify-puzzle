@@ -25,26 +25,64 @@ async function api(path, opts = {}) {
 
 async function loadStories() {
   stories = await api('/api/stories');
-  const sel = document.getElementById('storySelector');
-  sel.innerHTML = stories.map(s => `<option value="${s.id}">${escHtml(s.name)}</option>`).join('');
+  const badge = document.getElementById('storyBadge');
+  if (badge) badge.textContent = (stories.find(s => s.id === currentStoryId)?.name || '未选择') + ' ›';
   if (!currentStoryId || !stories.find(s => s.id === currentStoryId)) {
     currentStoryId = stories[0]?.id || '';
+    localStorage.setItem('admin_story_id', currentStoryId);
   }
-  sel.value = currentStoryId;
-  localStorage.setItem('admin_story_id', currentStoryId);
   if (currentStoryId) loadChapters();
 }
 
 async function switchStory(id) {
   currentStoryId = id;
   localStorage.setItem('admin_story_id', id);
+  const badge = document.getElementById('storyBadge');
+  if (badge) badge.textContent = (stories.find(s => s.id === id)?.name || '') + ' ›';
   document.getElementById('editorContent').style.display = 'none';
   document.getElementById('editorPlaceholder').style.display = 'block';
   document.getElementById('gameConfigEditor').style.display = 'none';
   document.getElementById('codesView').style.display = 'none';
   document.getElementById('commentsView').style.display = 'none';
+  document.getElementById('storyManageView').style.display = 'none';
   currentId = null;
   await loadChapters();
+}
+
+function showStoryManager() {
+  document.getElementById('editorContent').style.display = 'none';
+  document.getElementById('editorPlaceholder').style.display = 'none';
+  document.getElementById('gameConfigEditor').style.display = 'none';
+  document.getElementById('codesView').style.display = 'none';
+  document.getElementById('commentsView').style.display = 'none';
+  document.getElementById('storyManageView').style.display = 'block';
+  renderStoryManage();
+}
+
+function renderStoryManage() {
+  const list = document.getElementById('storyManageList');
+  list.innerHTML = stories.map(s => {
+    const isActive = s.id === currentStoryId;
+    const storyUrl = window.location.origin + '/' + s.id + '/';
+    return `<div class="story-card${isActive?' active':''}" onclick="selectStoryFromManage('${s.id}')">
+      <div style="flex:1;min-width:0">
+        <div class="sc-name">${escHtml(s.name)}${isActive?' <span class="sc-badge">当前</span>':''}</div>
+        <div class="sc-url">${storyUrl}</div>
+        <div class="sc-date">创建: ${new Date(s.createdAt).toLocaleDateString('zh-CN')}</div>
+      </div>
+      <div class="sc-actions">
+        <button class="btn btn-xs btn-secondary" onclick="event.stopPropagation();copyStoryById('${s.id}')" title="复制">📋</button>
+        <button class="btn btn-xs btn-secondary" onclick="event.stopPropagation();renameStoryById('${s.id}')" title="重命名">✎</button>
+        ${stories.length > 1 ? `<button class="btn btn-xs btn-danger" onclick="event.stopPropagation();deleteStoryById('${s.id}')" title="删除">🗑</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function selectStoryFromManage(id) {
+  if (id === currentStoryId) return;
+  await switchStory(id);
+  renderStoryManage();
 }
 
 async function createStory() {
@@ -52,24 +90,40 @@ async function createStory() {
   if (!name || !name.trim()) return;
   await api('/api/stories', { method: 'POST', body: JSON.stringify({ name: name.trim() }) });
   await loadStories();
-  if (stories.length > 0) await switchStory(stories[stories.length - 1].id);
+  if (stories.length > 0) { currentStoryId = stories[stories.length - 1].id; localStorage.setItem('admin_story_id', currentStoryId); await switchStory(currentStoryId); }
+  renderStoryManage();
 }
 
-async function copyStory() {
-  if (!currentStoryId) return;
+async function copyStoryById(id) {
   const name = prompt('输入副本名称：');
-  await api('/api/stories/' + currentStoryId + '/copy', { method: 'POST', body: JSON.stringify({ name: name || '' }) });
+  await api('/api/stories/' + id + '/copy', { method: 'POST', body: JSON.stringify({ name: name || '' }) });
   await loadStories();
-  if (stories.length > 0) await switchStory(stories[stories.length - 1].id);
+  if (stories.length > 0) { currentStoryId = stories[stories.length - 1].id; localStorage.setItem('admin_story_id', currentStoryId); await switchStory(currentStoryId); }
+  renderStoryManage();
 }
 
-async function deleteStory() {
-  if (!currentStoryId) return;
-  const s = stories.find(x => x.id === currentStoryId);
-  if (!s || !confirm('确定要删除故事「' + s.name + '」？所有数据和上传文件将被删除！')) return;
-  await api('/api/stories/' + currentStoryId, { method: 'DELETE' });
+async function renameStoryById(id) {
+  const s = stories.find(x => x.id === id);
+  if (!s) return;
+  const name = prompt('输入新名称：', s.name);
+  if (!name || !name.trim() || name.trim() === s.name) return;
+  await api('/api/stories/' + id + '/rename', { method: 'PUT', body: JSON.stringify({ name: name.trim() }) });
   await loadStories();
-  if (stories.length > 0) await switchStory(stories[0].id);
+  renderStoryManage();
+}
+
+async function deleteStoryById(id) {
+  const s = stories.find(x => x.id === id);
+  if (!s) return;
+  if (!confirm('确定要删除故事「' + s.name + '」？所有节点数据、留言、上传文件将被永久删除！')) return;
+  await api('/api/stories/' + id, { method: 'DELETE' });
+  await loadStories();
+  if (currentStoryId === id) {
+    currentStoryId = stories[0]?.id || '';
+    localStorage.setItem('admin_story_id', currentStoryId);
+    if (currentStoryId) await switchStory(currentStoryId);
+  }
+  renderStoryManage();
 }
 
 async function loadChapters() {
